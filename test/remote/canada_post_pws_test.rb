@@ -121,7 +121,13 @@ class RemoteCanadaPostPWSTest < Minitest::Test
   end
 
   def test_create_shipment
-    skip "Failing with 'Contract Number is a required field' after API change, skipping because no clue how to fix, might need different creds"
+    create_shipment(true)
+    create_shipment(false)
+  end
+
+  def create_shipment(use_contract)
+    @login.delete(:contract_id) unless use_contract
+
     opts = {:customer_number => @customer_number, :service => "DOM.XP"}
     response = @cp.create_shipment(@home_params, @dom_params, @pkg1, @line_item1, opts)
     assert_kind_of CPPWSShippingResponse, response
@@ -132,7 +138,13 @@ class RemoteCanadaPostPWSTest < Minitest::Test
   end
 
   def test_create_shipment_with_options
-    skip "Failing with 'Contract Number is a required field' after API change, skipping because no clue how to fix, might need different creds"
+    create_shipment_with_options(true)
+    create_shipment_with_options(false)
+  end
+
+  def create_shipment_with_options(use_contract)
+    @login.delete(:contract_id) unless use_contract
+
     opts = {:customer_number => @customer_number, :service => "USA.EP"}.merge(@shipping_opts1)
     response = @cp.create_shipment(@home_params, @dest_params, @pkg1, @line_item1, opts)
 
@@ -144,7 +156,13 @@ class RemoteCanadaPostPWSTest < Minitest::Test
   end
 
   def test_retrieve_shipping_label
-    skip "Failing with 'Contract Number is a required field' after API change, skipping because no clue how to fix, might need different creds"
+    retrieve_shipping_label(true)
+    retrieve_shipping_label(false)
+  end
+
+  def retrieve_shipping_label(use_contract)
+    @login.delete(:contract_id) unless use_contract
+
     opts = {:customer_number => @customer_number, :service => "DOM.XP"}
     shipping_response = @cp.create_shipment(@home_params, @dom_params, @pkg1, @line_item1, opts)
 
@@ -160,7 +178,13 @@ class RemoteCanadaPostPWSTest < Minitest::Test
   end
 
   def test_create_shipment_with_invalid_customer_raises_exception
-    skip "Failing with 'Contract Number is a required field' after API change, skipping because no clue how to fix, might need different creds"
+    create_shipment_with_invalid_customer_raises_exception(true)
+    create_shipment_with_invalid_customer_raises_exception(false)
+  end
+
+  def create_shipment_with_invalid_customer_raises_exception(use_contract)
+    @login.delete(:contract_id) unless use_contract
+
     opts = {:customer_number => "0000000000", :service => "DOM.XP"}
     assert_raises(ResponseError) do
       @cp.create_shipment(@home_params, @dom_params, @pkg1, @line_item1, opts)
