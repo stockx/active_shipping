@@ -2,6 +2,9 @@ module ActiveShipping
   class Error < ActiveUtils::ActiveUtilsError
   end
 
+  class RequestError < ActiveShipping::Error
+  end
+
   class ResponseError < ActiveShipping::Error
     attr_reader :response
 
