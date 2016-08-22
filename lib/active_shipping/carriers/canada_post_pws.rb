@@ -1,6 +1,6 @@
 module ActiveShipping
   class CanadaPostPWS < Carrier
-    
+
     cattr_reader :name
     @@name = "Canada Post PWS"
 
@@ -886,8 +886,8 @@ module ActiveShipping
     end
   end
 
-  class InvalidPinFormatError < StandardError; end
-  class MissingCustomerNumberError < StandardError; end
-  class MissingShippingNumberError < StandardError; end
-  class MissingTokenIdError < StandardError; end
+  class InvalidPinFormatError < RequestError; end
+  class MissingCustomerNumberError < RequestError; end
+  class MissingShippingNumberError < RequestError; end
+  class MissingTokenIdError < RequestError; end
 end

@@ -1,10 +1,9 @@
 module ActiveShipping
   class ShipmentPacker
-    class OverweightItem < StandardError
-    end
+    class OverweightItem < ActiveShipping::RequestError; end
+    class ExcessPackageQuantity < ActiveShipping::RequestError; end
 
     EXCESS_PACKAGE_QUANTITY_THRESHOLD = 10_000
-    class ExcessPackageQuantity < StandardError; end
 
     # items           - array of hashes containing quantity, grams and price.
     #                   ex. `[{:quantity => 2, :price => 1.0, :grams => 50}]`
