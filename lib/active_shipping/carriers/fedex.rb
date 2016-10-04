@@ -137,7 +137,7 @@ module ActiveShipping
     DEFAULT_LABEL_STOCK_TYPE = 'PAPER_7X4.75'
 
     # Available return formats for image data when creating labels
-    LABEL_FORMATS = ['DPL', 'EPL2', 'PDF', 'ZPLII', 'PNG'] 
+    LABEL_FORMATS = ['DPL', 'EPL2', 'PDF', 'ZPLII', 'PNG']
 
     def self.service_name_for_code(service_code)
       SERVICE_TYPES[service_code] || "FedEx #{service_code.titleize.sub(/Fedex /, '')}"
@@ -660,8 +660,15 @@ module ActiveShipping
           country  = address.at('CountryCode').try(:text)
 
           location = Location.new(:city => city, :state => state, :postal_code => zip_code, :country => country)
-          description = event.at('EventDescription').text
-          type_code = event.at('EventType').text
+
+          event_description = event.at('EventDescription').text
+          event_type_code = event.at('EventType').text
+
+          exception_status_code = event.at('StatusExceptionCode').try(:text)
+          exception_description = event.at('StatusExceptionDescription').try(:text)
+
+          description = exception_description.presence || event_description
+          type_code = exception_status_code.presence || event_type_code
 
           time          = Time.parse(event.at('Timestamp').text)
           zoneless_time = time.utc
