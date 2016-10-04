@@ -137,7 +137,7 @@ module ActiveShipping
     DEFAULT_LABEL_STOCK_TYPE = 'PAPER_7X4.75'
 
     # Available return formats for image data when creating labels
-    LABEL_FORMATS = ['DPL', 'EPL2', 'PDF', 'ZPLII', 'PNG']
+    LABEL_FORMATS = ['DPL', 'EPL2', 'PDF', 'ZPLII', 'PNG'].freeze
 
     def self.service_name_for_code(service_code)
       SERVICE_TYPES[service_code] || "FedEx #{service_code.titleize.sub(/Fedex /, '')}"
