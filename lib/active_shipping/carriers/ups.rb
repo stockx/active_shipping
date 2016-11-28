@@ -267,9 +267,11 @@ module ActiveShipping
 
           pickup_type = options[:pickup_type] || :daily_pickup
 
-          xml.PickupType do
-            xml.Code(PICKUP_CODES[pickup_type])
-            # not implemented: PickupType/PickupDetails element
+          unless pickup_type = :suggested_retail_rates
+            xml.PickupType do
+              xml.Code(PICKUP_CODES[pickup_type])
+              # not implemented: PickupType/PickupDetails element
+            end
           end
 
           cc = options[:customer_classification] || DEFAULT_CUSTOMER_CLASSIFICATIONS[pickup_type]
