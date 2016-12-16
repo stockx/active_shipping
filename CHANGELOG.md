@@ -1,5 +1,8 @@
 # ActiveShipping CHANGELOG
 
+### v1.9.2
+- Update active_utils dependency to v3.2.4
+
 ### v1.8.6
 - Fix UPS TrackResponse with no status code
 - Stop FedEx from raising for successful responses with no statuses
