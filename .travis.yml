@@ -1,22 +1,18 @@
 language: ruby
 script: bundle exec rake test
 sudo: false
-
 rvm:
-- "2.2.2"
-- "2.3.1"
-- "2.4.0"
-
+- 2.2.2
+- 2.3.1
+- 2.4.0
 gemfile:
 - gemfiles/activesupport42.gemfile
 - gemfiles/activesupport50.gemfile
 - gemfiles/activesupport_master.gemfile
-
 matrix:
   exclude:
-    - rvm: "2.4.0"
-      gemfile: gemfiles/activesupport42.gemfile
-
+  - rvm: 2.4.0
+    gemfile: gemfiles/activesupport42.gemfile
 env:
   global:
   - ACTIVESHIPPING_NEW_ZEALAND_POST_KEY=4d9dc0f0-dda0-012e-066f-000c29b44ac0
@@ -25,8 +21,8 @@ env:
   - ACTIVESHIPPING_CANADA_POST_PWS_API_KEY=6e93d53968881714
   - ACTIVESHIPPING_CANADA_POST_PWS_SECRET=0bfa9fcb9853d1f51ee57a
   - ACTIVESHIPPING_USPS_LOGIN=677JADED7283
-  - ACTIVESHIPPING_UPS_LOGIN=shopifolk
-  - ACTIVESHIPPING_UPS_KEY=7CE85DED4C9D07AB
-  - ACTIVESHIPPING_UPS_PASSWORD=Shopify_rocks
-  - ACTIVESHIPPING_UPS_ORIGIN_ACCOUNT=X3V606
-  - ACTIVESHIPPING_UPS_ORIGIN_NAME=Shopify
+  - secure: c368tAsLo74MFmhNt9WoNi9E5C66/wEf0j/8EFiq2wNbun2TRW8f2AUs8WQCro0rDo779urw4+MwdL4cdco7u5J6/zQjrHXPVAifFdAXuD44dH1y99NvvHBVvLy9zKttUEDaB4sEnWOtDkr9OiHE8+JnaE5GuVM5sWZ+0nkOfZM=
+  - secure: CLkZrq4Fy5ieQorMipAW0onDWm93KDY76YMQ9W1F9rnJvm5ToDDtdSfr1PPJ3HUrUX31YhetWZvpDCLpfDqgGfMzZSKtPm6FRJhUVL6kpw/eOo3SHzgyzz94s98Au8s2RXR46gTV4oda4Xk/C99ahoc54VIWvkcYlOio7+sAxTM=
+  - secure: AZIZSFYZk5EZpx1pdVVxZ/9RkEpFLLimVpMBRowcP7hfX3EKTrwkWDf7wjS06ZK6qDnuHmImPaa9aG4n4X9cJ2zjR19lo0bM5juVJecXYjL0Y31ZToekn51s55G5tqvqGDzo9lJfPY6XYP1k0piGoTUNvY5xIZZpuuPiCd7XV/0=
+  - secure: ijMyNC7wf4RXL5vONPSCvJVJMPYQpIC93HvExfVKcWjmDY/yNfQ//sffBcDR5nCPyqKZj8CAzMyu+APSpOeQgeYJryYBq7dmHCyd+YyFC+GsRjVr1Y7yzQZTiLlpwCU0Pnwy3TWLQI/RBh6PNXUrsBni1ax0NkCjv1cZITZV8cc=
+  - secure: XDo5qHPcr8PyiJW1f5ubeWwGkQqpeWxhEDkNzfv56jLCLj2NFGbW9pH0m9r/yOLnfIk+43kTpoZQbgVTEOv40f2Eamm4HCSUg7FQRnbxBM8l+OBjS4PHk97JqL1qt5uq6V1ML7BQcF5r8MTcIO1stHfo5Ox5cVvCLmvy029Aw5s=
