@@ -7,6 +7,7 @@ class RemoteUPSTest < ActiveSupport::TestCase
 
   def setup
     @options = credentials(:ups).merge(:test => true)
+    puts @options
     @carrier = UPS.new(@options)
   rescue NoCredentialsFound => e
     skip(e.message)
