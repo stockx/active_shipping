@@ -1,12 +1,17 @@
 module ActiveShipping #:nodoc:
   class Package
-    cattr_accessor :default_options do {} end
-    attr_reader :weight, :length, :width, :height, :options, :value, :currency
+    cattr_accessor :default_options
+    self.default_options = { shape: 'box' }
+
+    CYLINDER_ALIASES = %w(cylinder tube).freeze
+
+    attr_reader :weight, :length, :width, :height, :options, :shape, :value, :currency
 
     alias_attribute :mass, :weight
 
     def initialize(weight:, length:, width:, height: nil, options: {})
-      @options = @@default_options.merge(options.symbolize_keys)
+      @options = @@default_options.merge(options).symbolize_keys
+      @shape = @options[:shape].to_s
 
       raise ArgumentError, "Weight needs to be a Measured::Measurable object" unless weight.is_a?(Measured::Measurable)
       raise ArgumentError, "Length needs to be a Measured::Measurable object" unless length.is_a?(Measured::Measurable)
@@ -20,11 +25,11 @@ module ActiveShipping #:nodoc:
       @height = height || ( cylinder? ? width : Measured::Length.new(0, length.unit) )
 
       @value = self.class.cents_from(options[:value])
-      @currency = options[:currency] || options[:value].try(:currency)
+      @currency = options[:value].try(:currency) || options[:currency]
     end
 
     def dimensions
-      [@length, @width, @height]
+      @dimensions ||= [@length, @width, @height]
     end
 
     def girth
@@ -41,21 +46,17 @@ module ActiveShipping #:nodoc:
       end
     end
 
+    def box?
+      @box ||= @shape == 'box'
+    end
+
     def cylinder?
-      @cylinder ||= @options[:cylinder].present?
+      @cylinder ||= @shape.in?(CYLINDER_ALIASES)
     end
     alias_method :tube?, :cylinder?
 
-    def gift?
-      @gift ||= @options[:gift].present?
-    end
-
-    def oversized?
-      @oversized ||= @options[:oversized].present?
-    end
-
-    def unpackaged?
-      @unpackaged ||= @options[:unpackaged].present?
+    def envelope?
+      @envelope ||= @shape == 'envelope'
     end
 
     def self.cents_from(money)

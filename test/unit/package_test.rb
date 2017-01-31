@@ -10,19 +10,11 @@ class PackageTest < ActiveSupport::TestCase
     @value = 1299
     @currency = "USD"
 
-    @cylinder = false
-    @gift = false
-    @oversized = false
-    @unpackaged = false
-
     @options = {
       value: @value,
       currency:  @currency,
-      cylinder: @cylinder,
-      gift: @gift,
-      oversized: @oversized,
-      unpackaged: @unpackaged,
     }
+
     @default_args = { weight: @weight, length: @length, width: @width, height: @height, options: @options }
     @default_package = Package.new(**@default_args)
   end
@@ -37,15 +29,33 @@ class PackageTest < ActiveSupport::TestCase
     package = Package.new(**@default_args.merge(options: {}))
     refute_predicate package, :cylinder?
     refute_predicate package, :tube?
-    refute_predicate package, :oversized?
-    refute_predicate package, :unpackaged?
-    refute_predicate package, :gift?
   end
 
   test "#initialize defaults value and currency to nil if not passed" do
     package = Package.new(**@default_args.merge(options: {}))
     assert_nil package.value
     assert_nil package.currency
+  end
+
+  test "#initialize default shape to box" do
+    assert_predicate @default_package, :box?
+    refute_predicate @default_package, :tube?
+    refute_predicate @default_package, :envelope?
+  end
+
+  test "#initialize sets shape for tube" do
+    package = Package.new(**@default_args.merge(options: { shape: 'tube' }))
+    assert_predicate package, :tube?
+    assert_predicate package, :cylinder?
+    refute_predicate package, :box?
+    refute_predicate package, :envelope?
+  end
+
+  test "#initialize sets shape for envelope" do
+    package = Package.new(**@default_args.merge(options: { shape: 'envelope' }))
+    refute_predicate package, :tube?
+    refute_predicate package, :box?
+    assert_predicate package, :envelope?
   end
 
   test "#initialize with String value" do
@@ -93,14 +103,14 @@ class PackageTest < ActiveSupport::TestCase
     end
   end
 
-  test "#initialize sets height to zero if omitted and non-cylinder" do
+  test "#initialize sets height to zero if omitted and non-tube" do
     package = Package.new(**@default_args.except(:height))
 
     assert_equal Measured::Length(0, :cm), package.height
   end
 
-  test "#initialize sets height to width if omitted and cylinder" do
-    @options[:cylinder] = true
+  test "#initialize sets height to width if omitted and tube" do
+    @options[:shape] = :tube
     package = Package.new(**@default_args.merge(options: @options).except(:height))
 
     assert_equal package.width, package.height
@@ -118,7 +128,7 @@ class PackageTest < ActiveSupport::TestCase
 
   test "#girth returns the circumference of the surface perpendicular to length for cylindrical package" do
     skip "Requires Measured 2.0"
-    @options[:cylinder] = true
+    @options[:shape] = 'tube'
     package = Package.new(**@default_args.merge(options: @options))
 
     circumference = @width.scale(Math::PI)
@@ -136,7 +146,7 @@ class PackageTest < ActiveSupport::TestCase
   # So we'll return a raw value like we have in the past until that is a thing.
   test "#volume returns the volume for cylindrical package" do
     skip "Requires Measured 2.0"
-    @options[:cylinder] = true
+    @options[:shape] = 'tube'
     package = Package.new(**@default_args.merge(options: @options))
 
     circumference = @width.scale(Math::PI)
