@@ -36,6 +36,19 @@ class ShipmentPackerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_divide_realistic_order_into_multiple_packages_when_above_max_weight
+    ups_max_weight = 68038.8555
+
+    items = [{:grams => 45359, :quantity => 2, :price => 1.0}]
+
+    packages = ShipmentPacker.pack(items, @dimensions, ups_max_weight, 'USD')
+    assert_equal 2, packages.size
+
+    packages.each do |package|
+      assert_equal Measured::Weight(45359, :g), package.weight
+    end
+  end
+
   def test_divide_order_with_multiple_lines_into_two_packages
     items = [
       {:grams => 1, :quantity => 1, :price => 1.0},
