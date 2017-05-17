@@ -296,7 +296,7 @@ module ActiveShipping
       imperial = location_uses_imperial(origin)
 
       xml_builder = Nokogiri::XML::Builder.new do |xml|
-        xml.RateRequest(xmlns: 'http://fedex.com/ws/rate/v13') do
+        xml.RateRequest(xmlns: 'http://fedex.com/ws/rate/v20') do
           build_request_header(xml)
           build_version_node(xml, 'crs', 13, 0 ,0)
 
