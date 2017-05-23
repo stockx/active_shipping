@@ -223,11 +223,11 @@ module ActiveShipping
     def build_header
       Nokogiri::XML::Builder.new do |xml|
         xml['soap'].Envelope(
-                 'xmlns:soap' => 'http://schemas.xmlsoap.org/soap/envelope/',
-                 'xmlns:xsi'  => 'http://www.w3.org/2001/XMLSchema-instance',
-                 'xmlns:xsd'  => 'http://www.w3.org/2001/XMLSchema',
-                 'xmlns:tns'  => 'http://stamps.com/xml/namespace/2014/01/swsim/swsimv34'
-                ) do
+          'xmlns:soap' => 'http://schemas.xmlsoap.org/soap/envelope/',
+          'xmlns:xsi'  => 'http://www.w3.org/2001/XMLSchema-instance',
+          'xmlns:xsd'  => 'http://www.w3.org/2001/XMLSchema',
+          'xmlns:tns'  => 'http://stamps.com/xml/namespace/2014/01/swsim/swsimv34'
+        ) do
           xml['soap'].Body do
             yield(xml)
           end
@@ -719,6 +719,8 @@ module ActiveShipping
           response_options[:status_code] = event.at('TrackingEventType').text
           response_options[:status] = response_options[:status_code].underscore.to_sym
         end
+
+        return event
 
         response_options[:delivery_signature] = parse_content(event, 'SignedBy')
 
