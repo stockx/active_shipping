@@ -734,7 +734,7 @@ module ActiveShipping
           city:    event.at('City').text,
           state:   event.at('State').text,
           zip:     event.at('Zip').text,
-          country: event.at('Country').text || 'US'
+          country: event.at('Country').text.to_s.empty? ? 'US' : event.at('Country').text
         )
 
         ShipmentEvent.new(description, zoneless_time, location)
