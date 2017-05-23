@@ -720,8 +720,6 @@ module ActiveShipping
           response_options[:status] = response_options[:status_code].underscore.to_sym
         end
 
-        return event
-
         response_options[:delivery_signature] = parse_content(event, 'SignedBy')
 
         description = event.at('Event').text
