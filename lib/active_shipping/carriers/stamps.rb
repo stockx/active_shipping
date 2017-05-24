@@ -758,7 +758,13 @@ module ActiveShipping
       if country.to_s.empty?
         'US'
       else
-        ActiveUtils::COUNTRIES.find { |active_utils_country| country.downcase == active_utils_country.downcase }
+        split_country = country.split(' ')
+
+        split_country.each do |word|
+          word.capitalize!
+        end
+
+        split_country.merge!
       end
     end
   end
