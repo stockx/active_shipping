@@ -764,7 +764,7 @@ module ActiveShipping
           word.capitalize!
         end
 
-        split_country.merge!
+        split_country.join(' ')
       end
     end
   end
