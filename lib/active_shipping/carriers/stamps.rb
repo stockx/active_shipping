@@ -734,7 +734,7 @@ module ActiveShipping
           city:    event.at('City').text,
           state:   event.at('State').text,
           zip:     event.at('Zip').text,
-          country: event.at('Country').text.to_s.empty? ? 'US' : event.at('Country').text
+          country: country_from_track_shipment_response(event)
         )
 
         ShipmentEvent.new(description, zoneless_time, location)
@@ -749,6 +749,17 @@ module ActiveShipping
     def parse_content(node, child)
       return unless node.at(child) && node.at(child).text != ''
       node.at(child).text
+    end
+
+    private
+
+    def country_from_track_shipment_response(shipment_event)
+      country = shipment_event.at('Country').text
+      if country.to_s.empty?
+        'US'
+      else
+        ActiveUtils::COUNTRIES.find { |active_utils_country| country.downcase == active_utils_country.downcase }
+      end
     end
   end
 
