@@ -340,7 +340,6 @@ module ActiveShipping
               build_package_node(xml, package, options)
             end
 
-            # not implemented:  * Shipment/ShipmentServiceOptions element
             if options[:negotiated_rates]
               xml.RateInformation do
                 xml.NegotiatedRatesIndicator
@@ -487,6 +486,11 @@ module ActiveShipping
                 xml.DeliveryConfirmation do
                   xml.DCISType(SHIPMENT_DELIVERY_CONFIRMATION_CODES[delivery_confirmation])
                 end
+              end
+
+              if options[:import_control]
+                xml.ImportControlIndicator(true)
+                xml.LabelPrintMethod('05')
               end
 
               if options[:international]
@@ -823,15 +827,15 @@ module ActiveShipping
           days_to_delivery = nil if days_to_delivery == 0
           warning_messages = rate_warning_messages(rated_shipment)
           RateEstimate.new(origin, destination, @@name, service_name_for(origin, service_code),
-              :total_price => rated_shipment.at('TotalCharges/MonetaryValue').text.to_f,
-              :insurance_price => rated_shipment.at('ServiceOptionsCharges/MonetaryValue').text.to_f,
-              :currency => rated_shipment.at('TotalCharges/CurrencyCode').text,
-              :service_code => service_code,
-              :packages => packages,
-              :delivery_range => [timestamp_from_business_day(days_to_delivery)],
-              :negotiated_rate => rated_shipment.at('NegotiatedRates/NetSummaryCharges/GrandTotal/MonetaryValue').try(:text).to_f,
-              :messages => warning_messages
-          )
+                           :total_price => rated_shipment.at('TotalCharges/MonetaryValue').text.to_f,
+                           :insurance_price => rated_shipment.at('ServiceOptionsCharges/MonetaryValue').text.to_f,
+                           :currency => rated_shipment.at('TotalCharges/CurrencyCode').text,
+                           :service_code => service_code,
+                           :packages => packages,
+                           :delivery_range => [timestamp_from_business_day(days_to_delivery)],
+                           :negotiated_rate => rated_shipment.at('NegotiatedRates/NetSummaryCharges/GrandTotal/MonetaryValue').try(:text).to_f,
+                           :messages => warning_messages
+                           )
         end
       end
       RateResponse.new(success, message, Hash.from_xml(response).values.first, :rates => rate_estimates, :xml => response, :request => last_request)
@@ -882,7 +886,7 @@ module ActiveShipping
             scheduled_delivery_date = parse_ups_datetime(
               :date => scheduled_delivery_date_node,
               :time => nil
-              )
+            )
           end
         end
 
@@ -960,11 +964,11 @@ module ActiveShipping
           date = Date.strptime(service_summary.at('EstimatedArrival/Date').text, '%Y-%m-%d')
           business_transit_days = service_summary.at('EstimatedArrival/BusinessTransitDays').text.to_i
           delivery_estimates << DeliveryDateEstimate.new(origin, destination, self.class.class_variable_get(:@@name),
-                                    service_name,
-                                    :service_code => service_code,
-                                    :guaranteed => service_summary.at('Guaranteed/Code').text == 'Y',
-                                    :date =>  date,
-                                    :business_transit_days => business_transit_days)
+                                                         service_name,
+                                                         :service_code => service_code,
+                                                         :guaranteed => service_summary.at('Guaranteed/Code').text == 'Y',
+                                                         :date =>  date,
+                                                         :business_transit_days => business_transit_days)
         end
       end
       response = DeliveryDateEstimatesResponse.new(success, message, Hash.from_xml(response).values.first, :delivery_estimates => delivery_estimates, :xml => response, :request => last_request)
@@ -1204,7 +1208,7 @@ module ActiveShipping
     # See Appendix P of UPS Shipping Package XML Developers Guide for the rules on which the logic below is based.
     def package_level_delivery_confirmation?(origin, destination)
       origin.country_code == destination.country_code ||
-      [['US','PR'], ['PR','US']].include?([origin,destination].map(&:country_code))
+        [['US','PR'], ['PR','US']].include?([origin,destination].map(&:country_code))
     end
 
     def mapped_country_code(country_code)
