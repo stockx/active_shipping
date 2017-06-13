@@ -704,7 +704,9 @@ module ActiveShipping
         if options[:import_control]
           contents_description = package.options[:description]
           xml.Description(contents_description) if contents_description
-          xml.LabelPrintMethod('05')
+          xml.LabelPrintMethod do
+            xml.Code('05')
+          end
         end
 
         xml.PackagingType do
