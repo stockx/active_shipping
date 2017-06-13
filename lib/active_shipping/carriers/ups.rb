@@ -709,7 +709,7 @@ module ActiveShipping
       xml.Package do
         # not implemented:  * Shipment/Package/PackagingType element
 
-        if options[:import_control]
+        if options[:international]
           contents_description = package.options[:description]
           xml.Description(contents_description) if contents_description
         end
