@@ -701,9 +701,11 @@ module ActiveShipping
       xml.Package do
         # not implemented:  * Shipment/Package/PackagingType element
 
-        contents_description = package.options[:description]
-        xml.Description(contents_description) if contents_description
-        xml.LabelPrintMethod('05') if options[:import_control]
+        if options[:import_control]
+          contents_description = package.options[:description]
+          xml.Description(contents_description) if contents_description
+          xml.LabelPrintMethod('05')
+        end
 
         xml.PackagingType do
           xml.Code('02')
