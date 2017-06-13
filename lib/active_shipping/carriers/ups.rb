@@ -418,6 +418,14 @@ module ActiveShipping
               end
             end
 
+            if options[:import_control]
+              xml.ShipmentServiceOptions do
+                xml.LabelMethod do
+                  xml.Code('05')
+                end
+              end
+            end
+
             if options[:negotiated_rates]
               xml.RateInformation do
                 xml.NegotiatedRatesIndicator
@@ -704,9 +712,6 @@ module ActiveShipping
         if options[:import_control]
           contents_description = package.options[:description]
           xml.Description(contents_description) if contents_description
-          xml.LabelMethod do
-            xml.Code('05')
-          end
         end
 
         xml.PackagingType do
