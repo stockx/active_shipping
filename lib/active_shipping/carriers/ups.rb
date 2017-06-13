@@ -701,11 +701,8 @@ module ActiveShipping
       xml.Package do
         # not implemented:  * Shipment/Package/PackagingType element
 
-        #return requires description
-        if options[:return]
-          contents_description = package.options[:description]
-          xml.Description(contents_description) if contents_description
-        end
+        contents_description = package.options[:description]
+        xml.Description(contents_description) if contents_description
 
         xml.PackagingType do
           xml.Code('02')
