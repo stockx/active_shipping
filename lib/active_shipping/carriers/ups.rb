@@ -596,7 +596,7 @@ module ActiveShipping
 
           packages.each do |package|
             xml.Product do |xml|
-              xml.Description(package.options[:description])
+              xml.Description(package.options[:description] || options[:description])
               xml.CommodityCode(package.options[:commodity_code])
               xml.OriginCountryCode(options.country_of_origin || origin.country_code(:alpha2))
               xml.Unit do |xml|
