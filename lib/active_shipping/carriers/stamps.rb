@@ -419,7 +419,7 @@ module ActiveShipping
             xml['tns'].CustomsLine do
               xml['tns'].Description(    customs_line.name)
               xml['tns'].Quantity(       customs_line.quantity)
-              xml['tns'].Value(          '%.2f' % (customs_line.value.to_f / 100))
+              xml['tns'].Value(          '%.2f' % (customs_line.value.to_f))
               xml['tns'].WeightOz(       customs_line.ounces) unless customs_line.ounces.blank?
               xml['tns'].HSTariffNumber( customs_line.hs_code.tr('.', '')[0..5]) unless customs_line.hs_code.blank?
               xml['tns'].CountryOfOrigin(customs_line.options[:country]) unless customs_line.options[:country].blank?
