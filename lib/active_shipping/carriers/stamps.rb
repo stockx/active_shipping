@@ -316,7 +316,7 @@ module ActiveShipping
     end
 
     def add_rate(xml, origin, destination, package, options)
-      value = package.value ? '%.2f' % (package.value.to_f / 100) : nil
+      value = package.value ? '%.2f' % (package.value.to_f) : nil
       options[:insured_value] ||= value
       options[:declared_value] ||= value if international?(destination)
 
