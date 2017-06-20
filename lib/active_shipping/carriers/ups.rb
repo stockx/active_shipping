@@ -498,7 +498,6 @@ module ActiveShipping
 
               if options[:import_control]
                 xml.ImportControlIndicator(true)
-                xml.LabelPrintMethod('05')
               end
 
               if options[:international]
