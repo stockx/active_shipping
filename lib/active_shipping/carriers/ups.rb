@@ -412,12 +412,6 @@ module ActiveShipping
             # Required element. The company whose account is responsible for the label(s).
             build_location_node(xml, 'Shipper', shipper, options)
 
-            if options[:international]
-              unless options[:return]
-                build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
-              end
-            end
-
             if options[:saturday_delivery]
               xml.ShipmentServiceOptions do
                 xml.SaturdayDelivery
@@ -463,9 +457,9 @@ module ActiveShipping
             end
 
             if options[:international]
-              # unless options[:return]
-              #   build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
-              # end
+              unless options[:return]
+                build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
+              end
 
               if origin.country_code(:alpha2) == 'US' && ['CA', 'PR'].include?(destination.country_code(:alpha2))
                 # Required for shipments from the US to Puerto Rico or Canada
