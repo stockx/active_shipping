@@ -490,10 +490,8 @@ module ActiveShipping
 
               if options[:import_control]
                 xml.ImportControlIndicator(true)
-                xml.ShipmentServiceOptions do
-                  xml.LabelMethod do
-                    xml.Code(options[:label_method])
-                  end
+                xml.LabelMethod do
+                  xml.Code(options[:label_method])
                 end
               end
 
