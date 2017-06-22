@@ -1133,15 +1133,15 @@ module ActiveShipping
       xml     = build_document(response, 'ShipmentAcceptResponse')
       success = response_success?(xml)
       message = response_message(xml)
+      Hash.from_xml(response)
+      # response_info = Hash.from_xml(response).values.first
+      # packages = response_info["ShipmentResults"]["PackageResults"]
+      # packages = [packages] if Hash === packages
+      # labels = packages.map do |package|
+      #   Label.new(package["TrackingNumber"], Base64.decode64(package["LabelImage"]["GraphicImage"]))
+      # end
 
-      response_info = Hash.from_xml(response).values.first
-      packages = response_info["ShipmentResults"]["PackageResults"]
-      packages = [packages] if Hash === packages
-      labels = packages.map do |package|
-        Label.new(package["TrackingNumber"], Base64.decode64(package["LabelImage"]["GraphicImage"]))
-      end
-
-      LabelResponse.new(success, message, response_info, {labels: labels})
+      # LabelResponse.new(success, message, response_info, {labels: labels})
     end
 
     def commit(action, request, test = false)
