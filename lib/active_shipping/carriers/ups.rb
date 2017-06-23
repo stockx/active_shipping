@@ -591,6 +591,7 @@ module ActiveShipping
           xml.InvoiceDate(options[:invoice_date] || Date.today.strftime('%Y%m%d'))
           xml.ReasonForExport(options[:reason_for_export] || 'SALE')
           xml.CurrencyCode(options[:currency_code] || 'USD')
+          xml.InvoiceNumber(options[:invoice_number])
 
           if options[:terms_of_shipment]
             xml.TermsOfShipment(options[:terms_of_shipment])
