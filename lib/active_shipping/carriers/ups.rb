@@ -438,7 +438,7 @@ module ActiveShipping
                 end
               end
             else
-              xml.PaymentInformation do
+              xml.ItemizedPaymentInformation do
                 xml.ShipmentCharge do
                   # Type '01' means 'Transportation'
                   # This node specifies who will be billed for transportation.
