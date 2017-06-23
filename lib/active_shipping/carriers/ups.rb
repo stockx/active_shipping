@@ -809,7 +809,6 @@ module ActiveShipping
         xml.BillReceiver do
           xml.AccountNumber(options[:origin_account])
         end
-      end
       else
         xml.BillShipper do
           xml.AccountNumber(options[:origin_account])
