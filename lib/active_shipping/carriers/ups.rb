@@ -800,8 +800,13 @@ module ActiveShipping
             end
           end
         end
-      else
+      elsif options[:bill_shipper]
         xml.BillShipper do
+          xml.AccountNumber(options[:origin_account])
+        end
+      end
+      else
+        xml.BillReceiver do
           xml.AccountNumber(options[:origin_account])
         end
       end
