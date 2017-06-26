@@ -459,9 +459,9 @@ module ActiveShipping
             end
 
             if options[:international]
-              unless options[:return]
-                build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
-              end
+              # unless options[:return]
+              build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
+              # end
 
               if origin.country_code(:alpha2) == 'US' && ['CA', 'PR'].include?(destination.country_code(:alpha2))
                 # Required for shipments from the US to Puerto Rico or Canada
@@ -533,7 +533,9 @@ module ActiveShipping
           end
         end
       end
-      xml_builder.to_xml
+      result = xml_builder.to_xml
+      File.write('last_shipment_request.xml', result)
+      result
     end
 
     def build_delivery_dates_request(origin, destination, packages, pickup_date, options={})
