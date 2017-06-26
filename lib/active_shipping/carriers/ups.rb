@@ -533,9 +533,7 @@ module ActiveShipping
           end
         end
       end
-      result = xml_builder.to_xml
-      File.write('last_shipment_request.xml', result)
-      result
+      xml_builder.to_xml
     end
 
     def build_delivery_dates_request(origin, destination, packages, pickup_date, options={})
