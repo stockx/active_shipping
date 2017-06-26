@@ -436,6 +436,13 @@ module ActiveShipping
                 xml.Prepaid do
                   build_billing_info_node(xml, options)
                 end
+                xml.FreightCollect do
+                  xml.BillReciever do
+                    xml.AccountNumber do
+                      options[:origin_account]
+                    end
+                  end
+                end
               end
             else
               xml.ItemizedPaymentInformation do
@@ -445,7 +452,7 @@ module ActiveShipping
                   xml.Type('01')
                   build_billing_info_node(xml, options)
                 end
-                if options[:terms_of_shipment] != 'DDP' && !options[:import_control]
+                if options[:terms_of_shipment] == 'DDP' && options[:international]
                   # DDP stands for delivery duty paid and means the shipper will cover duties and taxes
                   # Otherwise UPS will charge the receiver
                   xml.ShipmentCharge do
