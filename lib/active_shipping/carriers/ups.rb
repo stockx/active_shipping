@@ -533,7 +533,9 @@ module ActiveShipping
           end
         end
       end
-      xml_builder.to_xml
+      result = xml_builder.to_xml
+      File.write('last_request.xml', result)
+      result
     end
 
     def build_delivery_dates_request(origin, destination, packages, pickup_date, options={})
@@ -1020,7 +1022,6 @@ module ActiveShipping
           end
         end
       end
-
       xml_builder.to_xml
     end
 
