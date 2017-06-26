@@ -441,11 +441,11 @@ module ActiveShipping
               xml.FreightCollect do
                 xml.BillReciever do
                   xml.AccountNumber do
-                    options[:origin_account]
-                    xml.Address do
-                      xml.PostalCode do
-                        origin.postal_code
-                      end
+                    options[:origin_account] || 'X56245'
+                  end
+                  xml.Address do
+                    xml.PostalCode do
+                      origin.postal_code
                     end
                   end
                 end
