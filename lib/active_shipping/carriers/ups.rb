@@ -452,11 +452,6 @@ module ActiveShipping
                     xml.Type('02') # Type '02' means 'Duties and Taxes'
                     build_billing_info_node(xml, options.merge(bill_to_consignee: true))
                   end
-                else
-                  xml.ShipmentCharge do
-                    xml.Type('02')
-                    build_billing_info_node(xml, options.merge(bill_receiver: true))
-                  end
                 end
               end
             end
@@ -804,10 +799,6 @@ module ActiveShipping
               end
             end
           end
-        end
-      elsif options[:bill_receiver]
-        xml.BillReceiver do
-          xml.AccountNumber(options[:origin_account])
         end
       else
         xml.BillShipper do
