@@ -431,42 +431,32 @@ module ActiveShipping
               end
             end
 
-            # if options[:prepay]
-            xml.PaymentInformation do
-              # xml.Prepaid do
-              #   xml.BillShipper do
-              #     xml.AccountNumber(options[:origin_account])
-              #   end
-              # end
-              xml.FreightCollect do
-                xml.BillReceiver do
-                  xml.AccountNumber('X56245')
-                  xml.Address do
-                    xml.PostalCode do
-                      origin.postal_code
-                    end
+            if options[:prepay]
+              xml.PaymentInformation do
+                xml.Prepaid do
+                  xml.BillShipper do
+                    xml.AccountNumber(options[:origin_account])
+                  end
+                end
+              end
+            else
+              xml.ItemizedPaymentInformation do
+                xml.ShipmentCharge do
+                  # Type '01' means 'Transportation'
+                  # This node specifies who will be billed for transportation.
+                  xml.Type('01')
+                  build_billing_info_node(xml, options)
+                end
+                if options[:terms_of_shipment] == 'DDP' && options[:international]
+                  # DDP stands for delivery duty paid and means the shipper will cover duties and taxes
+                  # Otherwise UPS will charge the receiver
+                  xml.ShipmentCharge do
+                    xml.Type('02') # Type '02' means 'Duties and Taxes'
+                    build_billing_info_node(xml, options.merge(bill_to_consignee: true))
                   end
                 end
               end
             end
-            # else
-            #   xml.ItemizedPaymentInformation do
-            #     xml.ShipmentCharge do
-            #       # Type '01' means 'Transportation'
-            #       # This node specifies who will be billed for transportation.
-            #       xml.Type('01')
-            #       build_billing_info_node(xml, options)
-            #     end
-            #     if options[:terms_of_shipment] == 'DDP' && options[:international]
-            #       # DDP stands for delivery duty paid and means the shipper will cover duties and taxes
-            #       # Otherwise UPS will charge the receiver
-            #       xml.ShipmentCharge do
-            #         xml.Type('02') # Type '02' means 'Duties and Taxes'
-            #         build_billing_info_node(xml, options.merge(bill_to_consignee: true))
-            #       end
-            #     end
-            #   end
-            # end
 
             if options[:international]
               unless options[:return]
