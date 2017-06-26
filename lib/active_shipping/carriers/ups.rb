@@ -661,6 +661,7 @@ module ActiveShipping
 
         if name == 'Shipper' and (origin_account = options[:origin_account] || @options[:origin_account])
           xml.ShipperNumber(origin_account)
+          xml.TaxIdentificationNumber(location.tin) if !location.tin.nil?
         elsif name == 'ShipTo' and (destination_account = options[:destination_account] || @options[:destination_account])
           xml.ShipperAssignedIdentificationNumber(destination_account)
         end
@@ -675,10 +676,6 @@ module ActiveShipping
 
         if attn = location.name
           xml.AttentionName(attn)
-        end
-
-        if name == 'Shipper'
-          xml.TaxIdentificationNumber(location.tin) unless location.tin.nil?
         end
 
         xml.Address do

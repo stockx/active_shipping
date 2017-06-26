@@ -129,7 +129,8 @@ module ActiveShipping #:nodoc:
         phone: phone,
         fax: fax,
         address_type: address_type,
-        company_name: company_name
+        company_name: company_name,
+        tin: tin
       }
     end
 
