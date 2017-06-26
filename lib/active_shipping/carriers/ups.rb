@@ -440,6 +440,11 @@ module ActiveShipping
                   xml.BillReciever do
                     xml.AccountNumber do
                       options[:origin_account]
+                      xml.Address do
+                        xml.PostalCode do
+                          origin.postal_code
+                        end
+                      end
                     end
                   end
                 end
