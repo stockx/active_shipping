@@ -534,7 +534,7 @@ module ActiveShipping
         end
       end
       xml_p = xml_builder.to_xml
-      File.write(xml_p, 'test.xml')
+      File.write('test.xml', xml_p)
       xml_p
     end
 
