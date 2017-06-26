@@ -440,9 +440,7 @@ module ActiveShipping
               # end
               xml.FreightCollect do
                 xml.BillReceiver do
-                  xml.AccountNumber do
-                    options[:origin_account] || 'X56245'
-                  end
+                  xml.AccountNumber('X56245')
                   xml.Address do
                     xml.PostalCode do
                       origin.postal_code
