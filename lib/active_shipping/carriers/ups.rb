@@ -431,30 +431,30 @@ module ActiveShipping
               end
             end
 
-            # if options[:prepay]
-            xml.PaymentInformation do
-              xml.Prepaid do
-                build_billing_info_node(xml, options)
+            if options[:prepay]
+              xml.PaymentInformation do
+                xml.Prepaid do
+                  build_billing_info_node(xml, options)
+                end
+              end
+            else
+              xml.ItemizedPaymentInformation do
+                xml.ShipmentCharge do
+                  # Type '01' means 'Transportation'
+                  # This node specifies who will be billed for transportation.
+                  xml.Type('01')
+                  build_billing_info_node(xml, options)
+                end
+                if options[:terms_of_shipment] != 'DDP' && !options[:import_control]
+                  # DDP stands for delivery duty paid and means the shipper will cover duties and taxes
+                  # Otherwise UPS will charge the receiver
+                  xml.ShipmentCharge do
+                    xml.Type('02') # Type '02' means 'Duties and Taxes'
+                    build_billing_info_node(xml, options.merge(bill_to_consignee: true))
+                  end
+                end
               end
             end
-            # else
-            #   xml.ItemizedPaymentInformation do
-            #     xml.ShipmentCharge do
-            #       # Type '01' means 'Transportation'
-            #       # This node specifies who will be billed for transportation.
-            #       xml.Type('01')
-            #       build_billing_info_node(xml, options)
-            #     end
-            #     if options[:terms_of_shipment] == 'DDP' && options[:international]
-            #       # DDP stands for delivery duty paid and means the shipper will cover duties and taxes
-            #       # Otherwise UPS will charge the receiver
-            #       xml.ShipmentCharge do
-            #         xml.Type('02') # Type '02' means 'Duties and Taxes'
-            #         build_billing_info_node(xml, options.merge(bill_to_consignee: true))
-            #       end
-            #     end
-            #   end
-            # end
 
             if options[:international]
               unless options[:return]
@@ -787,23 +787,23 @@ module ActiveShipping
     end
 
     def build_billing_info_node(xml, options={})
-      # if options[:bill_third_party]
-      #   xml.BillThirdParty do
-      #     node_type = options[:bill_to_consignee] ? :BillThirdPartyConsignee : :BillThirdPartyShipper
-      #     xml.public_send(node_type) do
-      #       xml.AccountNumber(options[:billing_account])
-      #       xml.ThirdParty do
-      #         xml.Address do
-      #           xml.PostalCode(options[:billing_zip])
-      #           xml.CountryCode(mapped_country_code(options[:billing_country]))
-      #         end
-      #       end
-      #     end
-      #   end
-      # else
-      xml.BillShipper do
-        xml.AccountNumber(options[:origin_account])
-        # end
+      if options[:bill_third_party]
+        xml.BillThirdParty do
+          node_type = options[:bill_to_consignee] ? :BillThirdPartyConsignee : :BillThirdPartyShipper
+          xml.public_send(node_type) do
+            xml.AccountNumber(options[:billing_account])
+            xml.ThirdParty do
+              xml.Address do
+                xml.PostalCode(options[:billing_zip])
+                xml.CountryCode(mapped_country_code(options[:billing_country]))
+              end
+            end
+          end
+        end
+      else
+        xml.BillShipper do
+          xml.AccountNumber(options[:origin_account])
+        end
       end
     end
 
