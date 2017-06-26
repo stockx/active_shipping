@@ -18,18 +18,19 @@ module ActiveShipping #:nodoc:
     }.freeze
 
     attr_reader :options,
-                :country,
-                :postal_code,
-                :province,
-                :city,
-                :name,
-                :address1,
-                :address2,
-                :address3,
-                :phone,
-                :fax,
-                :address_type,
-                :company_name
+      :country,
+      :postal_code,
+      :province,
+      :city,
+      :name,
+      :address1,
+      :address2,
+      :address3,
+      :phone,
+      :fax,
+      :address_type,
+      :company_name,
+      :tin
 
     alias_method :zip, :postal_code
     alias_method :postal, :postal_code
@@ -55,6 +56,7 @@ module ActiveShipping #:nodoc:
       @phone = options[:phone]
       @fax = options[:fax]
       @company_name = options[:company_name] || options[:company]
+      @tin = options[:tin]
 
       self.address_type = options[:address_type]
     end

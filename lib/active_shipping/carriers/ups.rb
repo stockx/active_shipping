@@ -675,6 +675,10 @@ module ActiveShipping
           xml.AttentionName(attn)
         end
 
+        if name == 'Shipper'
+          xml.TaxIdentificationNumber(location.tin) unless location.tin.nil?
+        end
+
         xml.Address do
           xml.AddressLine1(location.address1) unless location.address1.blank?
           xml.AddressLine2(location.address2) unless location.address2.blank?
