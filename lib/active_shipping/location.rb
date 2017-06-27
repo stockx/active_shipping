@@ -30,7 +30,8 @@ module ActiveShipping #:nodoc:
       :fax,
       :address_type,
       :company_name,
-      :tin
+      :tin,
+      :email
 
     alias_method :zip, :postal_code
     alias_method :postal, :postal_code
@@ -57,6 +58,7 @@ module ActiveShipping #:nodoc:
       @fax = options[:fax]
       @company_name = options[:company_name] || options[:company]
       @tin = options[:tin]
+      @email = options[:email]
 
       self.address_type = options[:address_type]
     end
@@ -130,7 +132,8 @@ module ActiveShipping #:nodoc:
         fax: fax,
         address_type: address_type,
         company_name: company_name,
-        tin: tin
+        tin: tin,
+        email: email
       }
     end
 
