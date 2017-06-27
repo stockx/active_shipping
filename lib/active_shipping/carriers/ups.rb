@@ -626,605 +626,606 @@ module ActiveShipping
           end
         end
       end
+    end
 
-      def build_accept_request(digest, options = {})
-        xml_builder = Nokogiri::XML::Builder.new do |xml|
-          xml.ShipmentAcceptRequest do
-            xml.Request do
-              xml.RequestAction('ShipAccept')
-            end
-            xml.ShipmentDigest(digest)
+    def build_accept_request(digest, options = {})
+      xml_builder = Nokogiri::XML::Builder.new do |xml|
+        xml.ShipmentAcceptRequest do
+          xml.Request do
+            xml.RequestAction('ShipAccept')
           end
-        end
-        xml_builder.to_xml
-      end
-
-      def build_tracking_request(tracking_number, options = {})
-        xml_builder = Nokogiri::XML::Builder.new do |xml|
-          xml.TrackRequest do
-            xml.TrackingOption(options[:tracking_option]) if options[:tracking_option]
-            xml.Request do
-              xml.RequestAction('Track')
-              xml.RequestOption('1')
-            end
-            xml.TrackingNumber(tracking_number.to_s)
-            xml.TrackingOption('03') if options[:mail_innovations]
-          end
-        end
-        xml_builder.to_xml
-      end
-
-      def build_location_node(xml, name, location, options = {})
-        # not implemented:  * Shipment/Shipper/Name element
-        #                   * Shipment/(ShipTo|ShipFrom)/CompanyName element
-        #                   * Shipment/(Shipper|ShipTo|ShipFrom)/AttentionName element
-        xml.public_send(name) do
-          if shipper_name = (location.name || location.company_name || options[:origin_name])
-            xml.Name(shipper_name)
-          end
-          xml.PhoneNumber(location.phone.gsub(/[^\d]/, '')) unless location.phone.blank?
-          xml.FaxNumber(location.fax.gsub(/[^\d]/, '')) unless location.fax.blank?
-
-          if name == 'Shipper' and (origin_account = options[:origin_account] || @options[:origin_account])
-            xml.ShipperNumber(origin_account)
-            xml.TaxIdentificationNumber(location.tin)
-          elsif name == 'ShipTo' and (destination_account = options[:destination_account] || @options[:destination_account])
-            xml.ShipperAssignedIdentificationNumber(destination_account)
-          end
-
-          if name = (location.company_name || location.name || options[:origin_name])
-            xml.CompanyName(name)
-          end
-
-          if phone = location.phone
-            xml.PhoneNumber(phone)
-          end
-
-          if attn = location.name
-            xml.AttentionName(attn)
-          end
-
-          xml.Address do
-            xml.AddressLine1(location.address1) unless location.address1.blank?
-            xml.AddressLine2(location.address2) unless location.address2.blank?
-            xml.AddressLine3(location.address3) unless location.address3.blank?
-            xml.City(location.city) unless location.city.blank?
-            xml.StateProvinceCode(location.province) unless location.province.blank?
-            # StateProvinceCode required for negotiated rates but not otherwise, for some reason
-            xml.PostalCode(location.postal_code) unless location.postal_code.blank?
-            xml.CountryCode(mapped_country_code(location.country_code(:alpha2))) unless location.country_code(:alpha2).blank?
-            xml.ResidentialAddressIndicator(true) unless location.commercial? # the default should be that UPS returns residential rates for destinations that it doesn't know about
-            # not implemented: Shipment/(Shipper|ShipTo|ShipFrom)/Address/ResidentialAddressIndicator element
-          end
+          xml.ShipmentDigest(digest)
         end
       end
+      xml_builder.to_xml
+    end
 
-      def build_address_artifact_format_location(xml, name, location)
-        xml.public_send(name) do
-          xml.AddressArtifactFormat do
-            xml.PoliticalDivision2(location.city)
-            xml.PoliticalDivision1(location.province)
-            xml.CountryCode(mapped_country_code(location.country_code(:alpha2)))
-            xml.PostcodePrimaryLow(location.postal_code)
-            xml.ResidentialAddressIndicator(true) unless location.commercial?
+    def build_tracking_request(tracking_number, options = {})
+      xml_builder = Nokogiri::XML::Builder.new do |xml|
+        xml.TrackRequest do
+          xml.TrackingOption(options[:tracking_option]) if options[:tracking_option]
+          xml.Request do
+            xml.RequestAction('Track')
+            xml.RequestOption('1')
           end
+          xml.TrackingNumber(tracking_number.to_s)
+          xml.TrackingOption('03') if options[:mail_innovations]
         end
       end
+      xml_builder.to_xml
+    end
 
-      def build_package_node(xml, package, options = {})
-        xml.Package do
-          # not implemented:  * Shipment/Package/PackagingType element
-
-          if options[:international]
-            contents_description = package.options[:description]
-            xml.Description(contents_description) if contents_description
-          end
-
-          xml.PackagingType do
-            xml.Code('02')
-          end
-
-          xml.Dimensions do
-            xml.UnitOfMeasurement do
-              xml.Code(options[:imperial] ? 'IN' : 'CM')
-            end
-            [:length, :width, :height].each do |axis|
-              value = ((options[:imperial] ? package.inches(axis) : package.cm(axis)).to_f * 1000).round / 1000.0 # 3 decimals
-              xml.public_send(axis.to_s.capitalize, [value, 0.1].max)
-            end
-          end
-
-          xml.PackageWeight do
-            if (options[:service] || options[:service_code]) == DEFAULT_SERVICE_NAME_TO_CODE["UPS SurePost (USPS) < 1lb"]
-              # SurePost < 1lb uses OZS, not LBS
-              code = options[:imperial] ? 'OZS' : 'KGS'
-              weight = options[:imperial] ? package.oz : package.kgs
-            else
-              code = options[:imperial] ? 'LBS' : 'KGS'
-              weight = options[:imperial] ? package.lbs : package.kgs
-            end
-            xml.UnitOfMeasurement do
-              xml.Code(code)
-            end
-
-            value = ((weight).to_f * 1000).round / 1000.0 # 3 decimals
-            xml.Weight([value, 0.1].max)
-          end
-
-
-          Array(package.options[:reference_numbers]).each do |reference_number_info|
-            xml.ReferenceNumber do
-              xml.Code(reference_number_info[:code] || "")
-              xml.Value(reference_number_info[:value])
-            end
-          end
-
-          xml.PackageServiceOptions do
-            if delivery_confirmation = package.options[:delivery_confirmation]
-              xml.DeliveryConfirmation do
-                xml.DCISType(PACKAGE_DELIVERY_CONFIRMATION_CODES[delivery_confirmation])
-              end
-            end
-
-            if dry_ice = package.options[:dry_ice]
-              xml.DryIce do
-                xml.RegulationSet(dry_ice[:regulation_set] || 'CFR')
-                xml.DryIceWeight do
-                  xml.UnitOfMeasurement do
-                    xml.Code(options[:imperial] ? 'LBS' : 'KGS')
-                  end
-                  # Cannot be more than package weight.
-                  # Should be more than 0.0.
-                  # Valid characters are 0-9 and .(Decimal point).
-                  # Limit to 1 digit after the decimal. The maximum length
-                  # of the field is 5 including . and can hold up
-                  # to 1 decimal place.
-                  xml.Weight(dry_ice[:weight])
-                end
-              end
-            end
-
-            if package_value = package.options[:insured_value]
-              xml.InsuredValue do
-                xml.CurrencyCode(package.options[:currency] || 'USD')
-                xml.MonetaryValue(package_value.to_f)
-              end
-            end
-          end
-
-          # not implemented:  * Shipment/Package/LargePackageIndicator element
-          #                   * Shipment/Package/AdditionalHandling element
+    def build_location_node(xml, name, location, options = {})
+      # not implemented:  * Shipment/Shipper/Name element
+      #                   * Shipment/(ShipTo|ShipFrom)/CompanyName element
+      #                   * Shipment/(Shipper|ShipTo|ShipFrom)/AttentionName element
+      xml.public_send(name) do
+        if shipper_name = (location.name || location.company_name || options[:origin_name])
+          xml.Name(shipper_name)
         end
-      end
+        xml.PhoneNumber(location.phone.gsub(/[^\d]/, '')) unless location.phone.blank?
+        xml.FaxNumber(location.fax.gsub(/[^\d]/, '')) unless location.fax.blank?
 
-      def build_billing_info_node(xml, options={})
-        if options[:bill_third_party]
-          xml.BillThirdParty do
-            node_type = options[:bill_to_consignee] ? :BillThirdPartyConsignee : :BillThirdPartyShipper
-            xml.public_send(node_type) do
-              xml.AccountNumber(options[:billing_account])
-              xml.ThirdParty do
-                xml.Address do
-                  xml.PostalCode(options[:billing_zip])
-                  xml.CountryCode(mapped_country_code(options[:billing_country]))
-                end
-              end
-            end
-          end
-        else
-          xml.BillShipper do
-            xml.AccountNumber(options[:origin_account])
-          end
-        end
-      end
-
-      def build_document(xml, expected_root_tag)
-        document = Nokogiri.XML(xml)
-        if document.root.nil? || document.root.name != expected_root_tag
-          raise ActiveShipping::ResponseContentError.new(StandardError.new('Invalid document'), xml)
-        end
-        document
-      rescue Nokogiri::XML::SyntaxError => e
-        raise ActiveShipping::ResponseContentError.new(e, xml)
-      end
-
-      def parse_rate_response(origin, destination, packages, response, options = {})
-        xml = build_document(response, 'RatingServiceSelectionResponse')
-        success = response_success?(xml)
-        message = response_message(xml)
-
-        if success
-          rate_estimates = xml.root.css('> RatedShipment').map do |rated_shipment|
-            service_code = rated_shipment.at('Service/Code').text
-            days_to_delivery = rated_shipment.at('GuaranteedDaysToDelivery').text.to_i
-            days_to_delivery = nil if days_to_delivery == 0
-            warning_messages = rate_warning_messages(rated_shipment)
-            RateEstimate.new(origin, destination, @@name, service_name_for(origin, service_code),
-                             :total_price => rated_shipment.at('TotalCharges/MonetaryValue').text.to_f,
-                             :insurance_price => rated_shipment.at('ServiceOptionsCharges/MonetaryValue').text.to_f,
-                             :currency => rated_shipment.at('TotalCharges/CurrencyCode').text,
-                             :service_code => service_code,
-                             :packages => packages,
-                             :delivery_range => [timestamp_from_business_day(days_to_delivery)],
-                             :negotiated_rate => rated_shipment.at('NegotiatedRates/NetSummaryCharges/GrandTotal/MonetaryValue').try(:text).to_f,
-                             :messages => warning_messages
-                             )
-          end
-        end
-        RateResponse.new(success, message, Hash.from_xml(response).values.first, :rates => rate_estimates, :xml => response, :request => last_request)
-      end
-
-      def parse_tracking_response(response, options = {})
-        xml     = build_document(response, 'TrackResponse')
-        success = response_success?(xml)
-        message = response_message(xml)
-
-        if success
-          delivery_signature = nil
-          exception_event, scheduled_delivery_date, actual_delivery_date = nil
-          delivered, exception = false
-          shipment_events = []
-
-          first_shipment = xml.root.at('Shipment')
-          first_package = first_shipment.at('Package')
-          tracking_number = first_shipment.at_xpath('ShipmentIdentificationNumber | Package/TrackingNumber').text
-
-          # Build status hash
-          status_nodes = first_package.css('Activity > Status > StatusType')
-
-          if status_nodes.present?
-            # Prefer a delivery node
-            status_node = status_nodes.detect { |x| x.at('Code').text == 'D' }
-            status_node ||= status_nodes.first
-
-            status_code = status_node.at('Code').try(:text)
-            status_description = status_node.at('Description').try(:text)
-            status = TRACKING_STATUS_CODES[status_code]
-
-            if status_description =~ /out.*delivery/i
-              status = :out_for_delivery
-            end
-          end
-
-          origin, destination = %w(Shipper ShipTo).map do |location|
-            location_from_address_node(first_shipment.at("#{location}/Address"))
-          end
-
-          # Get scheduled delivery date
-          unless status == :delivered
-            scheduled_delivery_date_node = first_shipment.at('ScheduledDeliveryDate')
-            scheduled_delivery_date_node ||= first_shipment.at('RescheduledDeliveryDate')
-
-            if scheduled_delivery_date_node
-              scheduled_delivery_date = parse_ups_datetime(
-                :date => scheduled_delivery_date_node,
-                :time => nil
-              )
-            end
-          end
-
-          activities = first_package.css('> Activity')
-          unless activities.empty?
-            shipment_events = activities.map do |activity|
-              description = activity.at('Status/StatusType/Description').try(:text)
-              type_code = activity.at('Status/StatusType/Code').try(:text)
-              zoneless_time = parse_ups_datetime(:time => activity.at('Time'), :date => activity.at('Date'))
-              location = location_from_address_node(activity.at('ActivityLocation/Address'))
-              ShipmentEvent.new(description, zoneless_time, location, description, type_code)
-            end
-
-            shipment_events = shipment_events.sort_by(&:time)
-
-            # UPS will sometimes archive a shipment, stripping all shipment activity except for the delivery
-            # event (see test/fixtures/xml/delivered_shipment_without_events_tracking_response.xml for an example).
-            # This adds an origin event to the shipment activity in such cases.
-            if origin && !(shipment_events.count == 1 && status == :delivered)
-              first_event = shipment_events[0]
-              origin_event = ShipmentEvent.new(first_event.name, first_event.time, origin, first_event.message, first_event.type_code)
-
-              if within_same_area?(origin, first_event.location)
-                shipment_events[0] = origin_event
-              else
-                shipment_events.unshift(origin_event)
-              end
-            end
-
-            # Has the shipment been delivered?
-            if status == :delivered
-              delivered_activity = activities.first
-              delivery_signature = delivered_activity.at('ActivityLocation/SignedForByName').try(:text)
-              if delivered_activity.at('Status/StatusType/Code').text == 'D'
-                actual_delivery_date = parse_ups_datetime(:date => delivered_activity.at('Date'), :time => delivered_activity.at('Time'))
-              end
-              unless destination
-                destination = shipment_events[-1].location
-              end
-              shipment_events[-1] = ShipmentEvent.new(shipment_events.last.name, shipment_events.last.time, destination, shipment_events.last.message, shipment_events.last.type_code)
-            end
-          end
-
-        end
-        TrackingResponse.new(success, message, Hash.from_xml(response).values.first,
-                             :carrier => @@name,
-                             :xml => response,
-                             :request => last_request,
-                             :status => status,
-                             :status_code => status_code,
-                             :status_description => status_description,
-                             :delivery_signature => delivery_signature,
-                             :scheduled_delivery_date => scheduled_delivery_date,
-                             :actual_delivery_date => actual_delivery_date,
-                             :shipment_events => shipment_events,
-                             :delivered => delivered,
-                             :exception => exception,
-                             :exception_event => exception_event,
-                             :origin => origin,
-                             :destination => destination,
-                             :tracking_number => tracking_number)
-      end
-
-      def parse_delivery_dates_response(origin, destination, packages, response, options={})
-        xml     = build_document(response, 'TimeInTransitResponse')
-        success = response_success?(xml)
-        message = response_message(xml)
-        delivery_estimates = []
-
-        if success
-          xml.css('ServiceSummary').each do |service_summary|
-            # Translate the Time in Transit Codes to the service codes used elsewhere
-            service_name = service_summary.at('Service/Description').text
-            service_code = UPS::DEFAULT_SERVICE_NAME_TO_CODE[service_name]
-            date = Date.strptime(service_summary.at('EstimatedArrival/Date').text, '%Y-%m-%d')
-            business_transit_days = service_summary.at('EstimatedArrival/BusinessTransitDays').text.to_i
-            delivery_estimates << DeliveryDateEstimate.new(origin, destination, self.class.class_variable_get(:@@name),
-                                                           service_name,
-                                                           :service_code => service_code,
-                                                           :guaranteed => service_summary.at('Guaranteed/Code').text == 'Y',
-                                                           :date =>  date,
-                                                           :business_transit_days => business_transit_days)
-          end
-        end
-        response = DeliveryDateEstimatesResponse.new(success, message, Hash.from_xml(response).values.first, :delivery_estimates => delivery_estimates, :xml => response, :request => last_request)
-      end
-
-      def parse_void_response(response, options={})
-        xml = build_document(response, 'VoidShipmentResponse')
-        success = response_success?(xml)
-        message = response_message(xml)
-        if success
-          true
-        else
-          raise ResponseError.new("Void shipment failed with message: #{message}")
-        end
-      end
-
-      def build_address_validation_request(location, options = {})
-        xml_builder = Nokogiri::XML::Builder.new do |xml|
-          xml.AddressValidationRequest do
-            xml.Request do
-              xml.RequestAction('XAV')
-              xml.RequestOption('3')
-
-              if options[:customer_context]
-                xml.TransactionReference do
-                  xml.CustomerContext(options[:customer_context])
-                  xml.XpciVersion("1.0")
-                end
-              end
-            end
-
-            xml.AddressKeyFormat do
-              xml.AddressLine(location.address1)
-              if location.address2.present?
-                xml.AddressLine(location.address2)
-              end
-              xml.PoliticalDivision2(location.city)
-              xml.PoliticalDivision1(location.state)
-              xml.PostcodePrimaryLow(location.postal_code)
-              xml.CountryCode(mapped_country_code(location.country_code))
-            end
-          end
-        end
-        xml_builder.to_xml
-      end
-
-      def parse_address_validation_response(address, response, options={})
-        xml     = build_document(response, 'AddressValidationResponse')
-        success = response_success?(xml)
-        message = response_message(xml)
-
-        validity = nil
-        classification_code = nil
-        classification_description = nil
-        addresses = []
-
-        if success
-          if xml.at('AddressClassification/Code').present?
-            classification_code = xml.at('AddressClassification/Code').text
-          end
-
-          classification = case classification_code
-          when "1"
-            :commercial
-          when "2"
-            :residential
-          else
-            :unknown
-          end
-
-          validity = if xml.at("ValidAddressIndicator").present?
-            :valid
-          elsif xml.at("AmbiguousAddressIndicator").present?
-            :ambiguous
-          elsif xml.at("NoCandidatesIndicator").present?
-            :invalid
-          else
-            :unknown
-          end
-
-          addresses = xml.css('AddressKeyFormat').collect { |node| location_from_address_key_format_node(node) }
+        if name == 'Shipper' and (origin_account = options[:origin_account] || @options[:origin_account])
+          xml.ShipperNumber(origin_account)
+          xml.TaxIdentificationNumber(location.tin)
+        elsif name == 'ShipTo' and (destination_account = options[:destination_account] || @options[:destination_account])
+          xml.ShipperAssignedIdentificationNumber(destination_account)
         end
 
-        params = Hash.from_xml(response).values.first
-        response = AddressValidationResponse.new(success, message, params, :validity => validity, :classification => classification, :candidate_addresses => addresses, :xml => response, :request => last_request)
-      end
-
-      # Converts from a AddressKeyFormat XML node to a Location
-      def location_from_address_key_format_node(address)
-        return nil unless address
-        country = address.at('CountryCode').try(:text)
-        country = 'US' if country == 'ZZ' # Sometimes returned by SUREPOST in the US
-
-        address_lines = address.css('AddressLine')
-
-        Location.new(
-          :country     => country,
-          :postal_code => address.at('PostcodePrimaryLow').try(:text),
-          :province    => address.at('PoliticalDivision1').try(:text),
-          :city        => address.at('PoliticalDivision2').try(:text),
-          :address1    => address_lines[0].try(:text),
-          :address2    => address_lines[1].try(:text),
-          :address3    => address_lines[2].try(:text),
-        )
-      end
-
-      def location_from_address_node(address)
-        return nil unless address
-        country = address.at('CountryCode').try(:text)
-        country = 'US' if country == 'ZZ' # Sometimes returned by SUREPOST in the US
-        country = 'XK' if country == 'KV' # ActiveUtils now refers to Kosovo by XK
-        Location.new(
-          :country     => country,
-          :postal_code => address.at('PostalCode').try(:text),
-          :province    => address.at('StateProvinceCode').try(:text),
-          :city        => address.at('City').try(:text),
-          :address1    => address.at('AddressLine1').try(:text),
-          :address2    => address.at('AddressLine2').try(:text),
-          :address3    => address.at('AddressLine3').try(:text)
-        )
-      end
-
-      def parse_ups_datetime(options = {})
-        time, date = options[:time].try(:text), options[:date].text
-        if time.nil?
-          hour, minute, second = 0
-        else
-          hour, minute, second = time.scan(/\d{2}/)
-        end
-        year, month, day = date[0..3], date[4..5], date[6..7]
-
-        Time.utc(year, month, day, hour, minute, second)
-      end
-
-      def response_success?(document)
-        document.root.at('Response/ResponseStatusCode').text == '1'
-      end
-
-      def response_message(document)
-        status = document.root.at_xpath('Response/ResponseStatusDescription').try(:text)
-        desc = document.root.at_xpath('Response/Error/ErrorDescription').try(:text)
-        [status, desc].select(&:present?).join(": ").presence || "UPS could not process the request."
-      end
-
-      def rate_warning_messages(rate_xml)
-        rate_xml.xpath("RatedShipmentWarning").map { |warning| warning.text }
-      end
-
-      def response_digest(xml)
-        xml.root.at('ShipmentDigest').text
-      end
-
-      def parse_ship_confirm(response)
-        build_document(response, 'ShipmentConfirmResponse')
-      end
-
-      def parse_ship_accept(response)
-        xml     = build_document(response, 'ShipmentAcceptResponse')
-        success = response_success?(xml)
-        message = response_message(xml)
-
-        response_info = Hash.from_xml(response).values.first
-        packages = response_info["ShipmentResults"]["PackageResults"]
-        packages = [packages] if Hash === packages
-        labels = packages.map do |package|
-          Label.new(package["TrackingNumber"], Base64.decode64(package["LabelImage"]["GraphicImage"]))
+        if name = (location.company_name || location.name || options[:origin_name])
+          xml.CompanyName(name)
         end
 
-        LabelResponse.new(success, message, response_info, {labels: labels})
-      end
-
-      def commit(action, request, test = false)
-        response = ssl_post("#{test ? TEST_URL : LIVE_URL}/#{RESOURCES[action]}", request)
-        response.encode('utf-8', 'iso-8859-1')
-      end
-
-      def within_same_area?(origin, location)
-        return false unless location
-        matching_country_codes = origin.country_code(:alpha2) == location.country_code(:alpha2)
-        matching_or_blank_city = location.city.blank? || location.city == origin.city
-        matching_country_codes && matching_or_blank_city
-      end
-
-      def service_name_for(origin, code)
-        origin = origin.country_code(:alpha2)
-
-        name = case origin
-        when "CA" then CANADA_ORIGIN_SERVICES[code]
-        when "MX" then MEXICO_ORIGIN_SERVICES[code]
-        when *EU_COUNTRY_CODES then EU_ORIGIN_SERVICES[code]
+        if phone = location.phone
+          xml.PhoneNumber(phone)
         end
 
-        name ||= OTHER_NON_US_ORIGIN_SERVICES[code] unless name == 'US'
-        name || DEFAULT_SERVICES[code]
-      end
-
-      def allow_package_level_reference_numbers(origin, destination)
-        # if the package is US -> US or PR -> PR the only type of reference numbers that are allowed are package-level
-        # Otherwise the only type of reference numbers that are allowed are shipment-level
-        [['US','US'],['PR', 'PR']].include?([origin,destination].map(&:country_code))
-      end
-
-      def handle_delivery_confirmation_options(origin, destination, packages, options)
-        if package_level_delivery_confirmation?(origin, destination)
-          handle_package_level_delivery_confirmation(origin, destination, packages, options)
-        else
-          handle_shipment_level_delivery_confirmation(origin, destination, packages, options)
-        end
-      end
-
-      def handle_package_level_delivery_confirmation(origin, destination, packages, options)
-        packages.each do |package|
-          # Transfer shipment-level option to package with no specified delivery_confirmation
-          package.options[:delivery_confirmation] = options[:delivery_confirmation] unless package.options[:delivery_confirmation]
-
-          # Assert that option is valid
-          if package.options[:delivery_confirmation] && !PACKAGE_DELIVERY_CONFIRMATION_CODES[package.options[:delivery_confirmation]]
-            raise "Invalid delivery_confirmation option on package: '#{package.options[:delivery_confirmation]}'. Use a key from PACKAGE_DELIVERY_CONFIRMATION_CODES"
-          end
-        end
-        options.delete(:delivery_confirmation)
-      end
-
-      def handle_shipment_level_delivery_confirmation(origin, destination, packages, options)
-        if packages.any? { |p| p.options[:delivery_confirmation] }
-          raise "origin/destination pair does not support package level delivery_confirmation options"
+        if attn = location.name
+          xml.AttentionName(attn)
         end
 
-        if options[:delivery_confirmation] && !SHIPMENT_DELIVERY_CONFIRMATION_CODES[options[:delivery_confirmation]]
-          raise "Invalid delivery_confirmation option: '#{options[:delivery_confirmation]}'. Use a key from SHIPMENT_DELIVERY_CONFIRMATION_CODES"
+        xml.Address do
+          xml.AddressLine1(location.address1) unless location.address1.blank?
+          xml.AddressLine2(location.address2) unless location.address2.blank?
+          xml.AddressLine3(location.address3) unless location.address3.blank?
+          xml.City(location.city) unless location.city.blank?
+          xml.StateProvinceCode(location.province) unless location.province.blank?
+          # StateProvinceCode required for negotiated rates but not otherwise, for some reason
+          xml.PostalCode(location.postal_code) unless location.postal_code.blank?
+          xml.CountryCode(mapped_country_code(location.country_code(:alpha2))) unless location.country_code(:alpha2).blank?
+          xml.ResidentialAddressIndicator(true) unless location.commercial? # the default should be that UPS returns residential rates for destinations that it doesn't know about
+          # not implemented: Shipment/(Shipper|ShipTo|ShipFrom)/Address/ResidentialAddressIndicator element
         end
-      end
-
-      # For certain origin/destination pairs, UPS allows each package in a shipment to have a specified delivery_confirmation option
-      # otherwise the delivery_confirmation option must be specified on the entire shipment.
-      # See Appendix P of UPS Shipping Package XML Developers Guide for the rules on which the logic below is based.
-      def package_level_delivery_confirmation?(origin, destination)
-        origin.country_code == destination.country_code ||
-          [['US','PR'], ['PR','US']].include?([origin,destination].map(&:country_code))
-      end
-
-      def mapped_country_code(country_code)
-        COUNTRY_MAPPING[country_code].presence || country_code
       end
     end
+
+    def build_address_artifact_format_location(xml, name, location)
+      xml.public_send(name) do
+        xml.AddressArtifactFormat do
+          xml.PoliticalDivision2(location.city)
+          xml.PoliticalDivision1(location.province)
+          xml.CountryCode(mapped_country_code(location.country_code(:alpha2)))
+          xml.PostcodePrimaryLow(location.postal_code)
+          xml.ResidentialAddressIndicator(true) unless location.commercial?
+        end
+      end
+    end
+
+    def build_package_node(xml, package, options = {})
+      xml.Package do
+        # not implemented:  * Shipment/Package/PackagingType element
+
+        if options[:international]
+          contents_description = package.options[:description]
+          xml.Description(contents_description) if contents_description
+        end
+
+        xml.PackagingType do
+          xml.Code('02')
+        end
+
+        xml.Dimensions do
+          xml.UnitOfMeasurement do
+            xml.Code(options[:imperial] ? 'IN' : 'CM')
+          end
+          [:length, :width, :height].each do |axis|
+            value = ((options[:imperial] ? package.inches(axis) : package.cm(axis)).to_f * 1000).round / 1000.0 # 3 decimals
+            xml.public_send(axis.to_s.capitalize, [value, 0.1].max)
+          end
+        end
+
+        xml.PackageWeight do
+          if (options[:service] || options[:service_code]) == DEFAULT_SERVICE_NAME_TO_CODE["UPS SurePost (USPS) < 1lb"]
+            # SurePost < 1lb uses OZS, not LBS
+            code = options[:imperial] ? 'OZS' : 'KGS'
+            weight = options[:imperial] ? package.oz : package.kgs
+          else
+            code = options[:imperial] ? 'LBS' : 'KGS'
+            weight = options[:imperial] ? package.lbs : package.kgs
+          end
+          xml.UnitOfMeasurement do
+            xml.Code(code)
+          end
+
+          value = ((weight).to_f * 1000).round / 1000.0 # 3 decimals
+          xml.Weight([value, 0.1].max)
+        end
+
+
+        Array(package.options[:reference_numbers]).each do |reference_number_info|
+          xml.ReferenceNumber do
+            xml.Code(reference_number_info[:code] || "")
+            xml.Value(reference_number_info[:value])
+          end
+        end
+
+        xml.PackageServiceOptions do
+          if delivery_confirmation = package.options[:delivery_confirmation]
+            xml.DeliveryConfirmation do
+              xml.DCISType(PACKAGE_DELIVERY_CONFIRMATION_CODES[delivery_confirmation])
+            end
+          end
+
+          if dry_ice = package.options[:dry_ice]
+            xml.DryIce do
+              xml.RegulationSet(dry_ice[:regulation_set] || 'CFR')
+              xml.DryIceWeight do
+                xml.UnitOfMeasurement do
+                  xml.Code(options[:imperial] ? 'LBS' : 'KGS')
+                end
+                # Cannot be more than package weight.
+                # Should be more than 0.0.
+                # Valid characters are 0-9 and .(Decimal point).
+                # Limit to 1 digit after the decimal. The maximum length
+                # of the field is 5 including . and can hold up
+                # to 1 decimal place.
+                xml.Weight(dry_ice[:weight])
+              end
+            end
+          end
+
+          if package_value = package.options[:insured_value]
+            xml.InsuredValue do
+              xml.CurrencyCode(package.options[:currency] || 'USD')
+              xml.MonetaryValue(package_value.to_f)
+            end
+          end
+        end
+
+        # not implemented:  * Shipment/Package/LargePackageIndicator element
+        #                   * Shipment/Package/AdditionalHandling element
+      end
+    end
+
+    def build_billing_info_node(xml, options={})
+      if options[:bill_third_party]
+        xml.BillThirdParty do
+          node_type = options[:bill_to_consignee] ? :BillThirdPartyConsignee : :BillThirdPartyShipper
+          xml.public_send(node_type) do
+            xml.AccountNumber(options[:billing_account])
+            xml.ThirdParty do
+              xml.Address do
+                xml.PostalCode(options[:billing_zip])
+                xml.CountryCode(mapped_country_code(options[:billing_country]))
+              end
+            end
+          end
+        end
+      else
+        xml.BillShipper do
+          xml.AccountNumber(options[:origin_account])
+        end
+      end
+    end
+
+    def build_document(xml, expected_root_tag)
+      document = Nokogiri.XML(xml)
+      if document.root.nil? || document.root.name != expected_root_tag
+        raise ActiveShipping::ResponseContentError.new(StandardError.new('Invalid document'), xml)
+      end
+      document
+    rescue Nokogiri::XML::SyntaxError => e
+      raise ActiveShipping::ResponseContentError.new(e, xml)
+    end
+
+    def parse_rate_response(origin, destination, packages, response, options = {})
+      xml = build_document(response, 'RatingServiceSelectionResponse')
+      success = response_success?(xml)
+      message = response_message(xml)
+
+      if success
+        rate_estimates = xml.root.css('> RatedShipment').map do |rated_shipment|
+          service_code = rated_shipment.at('Service/Code').text
+          days_to_delivery = rated_shipment.at('GuaranteedDaysToDelivery').text.to_i
+          days_to_delivery = nil if days_to_delivery == 0
+          warning_messages = rate_warning_messages(rated_shipment)
+          RateEstimate.new(origin, destination, @@name, service_name_for(origin, service_code),
+                           :total_price => rated_shipment.at('TotalCharges/MonetaryValue').text.to_f,
+                           :insurance_price => rated_shipment.at('ServiceOptionsCharges/MonetaryValue').text.to_f,
+                           :currency => rated_shipment.at('TotalCharges/CurrencyCode').text,
+                           :service_code => service_code,
+                           :packages => packages,
+                           :delivery_range => [timestamp_from_business_day(days_to_delivery)],
+                           :negotiated_rate => rated_shipment.at('NegotiatedRates/NetSummaryCharges/GrandTotal/MonetaryValue').try(:text).to_f,
+                           :messages => warning_messages
+                           )
+        end
+      end
+      RateResponse.new(success, message, Hash.from_xml(response).values.first, :rates => rate_estimates, :xml => response, :request => last_request)
+    end
+
+    def parse_tracking_response(response, options = {})
+      xml     = build_document(response, 'TrackResponse')
+      success = response_success?(xml)
+      message = response_message(xml)
+
+      if success
+        delivery_signature = nil
+        exception_event, scheduled_delivery_date, actual_delivery_date = nil
+        delivered, exception = false
+        shipment_events = []
+
+        first_shipment = xml.root.at('Shipment')
+        first_package = first_shipment.at('Package')
+        tracking_number = first_shipment.at_xpath('ShipmentIdentificationNumber | Package/TrackingNumber').text
+
+        # Build status hash
+        status_nodes = first_package.css('Activity > Status > StatusType')
+
+        if status_nodes.present?
+          # Prefer a delivery node
+          status_node = status_nodes.detect { |x| x.at('Code').text == 'D' }
+          status_node ||= status_nodes.first
+
+          status_code = status_node.at('Code').try(:text)
+          status_description = status_node.at('Description').try(:text)
+          status = TRACKING_STATUS_CODES[status_code]
+
+          if status_description =~ /out.*delivery/i
+            status = :out_for_delivery
+          end
+        end
+
+        origin, destination = %w(Shipper ShipTo).map do |location|
+          location_from_address_node(first_shipment.at("#{location}/Address"))
+        end
+
+        # Get scheduled delivery date
+        unless status == :delivered
+          scheduled_delivery_date_node = first_shipment.at('ScheduledDeliveryDate')
+          scheduled_delivery_date_node ||= first_shipment.at('RescheduledDeliveryDate')
+
+          if scheduled_delivery_date_node
+            scheduled_delivery_date = parse_ups_datetime(
+              :date => scheduled_delivery_date_node,
+              :time => nil
+            )
+          end
+        end
+
+        activities = first_package.css('> Activity')
+        unless activities.empty?
+          shipment_events = activities.map do |activity|
+            description = activity.at('Status/StatusType/Description').try(:text)
+            type_code = activity.at('Status/StatusType/Code').try(:text)
+            zoneless_time = parse_ups_datetime(:time => activity.at('Time'), :date => activity.at('Date'))
+            location = location_from_address_node(activity.at('ActivityLocation/Address'))
+            ShipmentEvent.new(description, zoneless_time, location, description, type_code)
+          end
+
+          shipment_events = shipment_events.sort_by(&:time)
+
+          # UPS will sometimes archive a shipment, stripping all shipment activity except for the delivery
+          # event (see test/fixtures/xml/delivered_shipment_without_events_tracking_response.xml for an example).
+          # This adds an origin event to the shipment activity in such cases.
+          if origin && !(shipment_events.count == 1 && status == :delivered)
+            first_event = shipment_events[0]
+            origin_event = ShipmentEvent.new(first_event.name, first_event.time, origin, first_event.message, first_event.type_code)
+
+            if within_same_area?(origin, first_event.location)
+              shipment_events[0] = origin_event
+            else
+              shipment_events.unshift(origin_event)
+            end
+          end
+
+          # Has the shipment been delivered?
+          if status == :delivered
+            delivered_activity = activities.first
+            delivery_signature = delivered_activity.at('ActivityLocation/SignedForByName').try(:text)
+            if delivered_activity.at('Status/StatusType/Code').text == 'D'
+              actual_delivery_date = parse_ups_datetime(:date => delivered_activity.at('Date'), :time => delivered_activity.at('Time'))
+            end
+            unless destination
+              destination = shipment_events[-1].location
+            end
+            shipment_events[-1] = ShipmentEvent.new(shipment_events.last.name, shipment_events.last.time, destination, shipment_events.last.message, shipment_events.last.type_code)
+          end
+        end
+
+      end
+      TrackingResponse.new(success, message, Hash.from_xml(response).values.first,
+                           :carrier => @@name,
+                           :xml => response,
+                           :request => last_request,
+                           :status => status,
+                           :status_code => status_code,
+                           :status_description => status_description,
+                           :delivery_signature => delivery_signature,
+                           :scheduled_delivery_date => scheduled_delivery_date,
+                           :actual_delivery_date => actual_delivery_date,
+                           :shipment_events => shipment_events,
+                           :delivered => delivered,
+                           :exception => exception,
+                           :exception_event => exception_event,
+                           :origin => origin,
+                           :destination => destination,
+                           :tracking_number => tracking_number)
+    end
+
+    def parse_delivery_dates_response(origin, destination, packages, response, options={})
+      xml     = build_document(response, 'TimeInTransitResponse')
+      success = response_success?(xml)
+      message = response_message(xml)
+      delivery_estimates = []
+
+      if success
+        xml.css('ServiceSummary').each do |service_summary|
+          # Translate the Time in Transit Codes to the service codes used elsewhere
+          service_name = service_summary.at('Service/Description').text
+          service_code = UPS::DEFAULT_SERVICE_NAME_TO_CODE[service_name]
+          date = Date.strptime(service_summary.at('EstimatedArrival/Date').text, '%Y-%m-%d')
+          business_transit_days = service_summary.at('EstimatedArrival/BusinessTransitDays').text.to_i
+          delivery_estimates << DeliveryDateEstimate.new(origin, destination, self.class.class_variable_get(:@@name),
+                                                         service_name,
+                                                         :service_code => service_code,
+                                                         :guaranteed => service_summary.at('Guaranteed/Code').text == 'Y',
+                                                         :date =>  date,
+                                                         :business_transit_days => business_transit_days)
+        end
+      end
+      response = DeliveryDateEstimatesResponse.new(success, message, Hash.from_xml(response).values.first, :delivery_estimates => delivery_estimates, :xml => response, :request => last_request)
+    end
+
+    def parse_void_response(response, options={})
+      xml = build_document(response, 'VoidShipmentResponse')
+      success = response_success?(xml)
+      message = response_message(xml)
+      if success
+        true
+      else
+        raise ResponseError.new("Void shipment failed with message: #{message}")
+      end
+    end
+
+    def build_address_validation_request(location, options = {})
+      xml_builder = Nokogiri::XML::Builder.new do |xml|
+        xml.AddressValidationRequest do
+          xml.Request do
+            xml.RequestAction('XAV')
+            xml.RequestOption('3')
+
+            if options[:customer_context]
+              xml.TransactionReference do
+                xml.CustomerContext(options[:customer_context])
+                xml.XpciVersion("1.0")
+              end
+            end
+          end
+
+          xml.AddressKeyFormat do
+            xml.AddressLine(location.address1)
+            if location.address2.present?
+              xml.AddressLine(location.address2)
+            end
+            xml.PoliticalDivision2(location.city)
+            xml.PoliticalDivision1(location.state)
+            xml.PostcodePrimaryLow(location.postal_code)
+            xml.CountryCode(mapped_country_code(location.country_code))
+          end
+        end
+      end
+      xml_builder.to_xml
+    end
+
+    def parse_address_validation_response(address, response, options={})
+      xml     = build_document(response, 'AddressValidationResponse')
+      success = response_success?(xml)
+      message = response_message(xml)
+
+      validity = nil
+      classification_code = nil
+      classification_description = nil
+      addresses = []
+
+      if success
+        if xml.at('AddressClassification/Code').present?
+          classification_code = xml.at('AddressClassification/Code').text
+        end
+
+        classification = case classification_code
+        when "1"
+          :commercial
+        when "2"
+          :residential
+        else
+          :unknown
+        end
+
+        validity = if xml.at("ValidAddressIndicator").present?
+          :valid
+        elsif xml.at("AmbiguousAddressIndicator").present?
+          :ambiguous
+        elsif xml.at("NoCandidatesIndicator").present?
+          :invalid
+        else
+          :unknown
+        end
+
+        addresses = xml.css('AddressKeyFormat').collect { |node| location_from_address_key_format_node(node) }
+      end
+
+      params = Hash.from_xml(response).values.first
+      response = AddressValidationResponse.new(success, message, params, :validity => validity, :classification => classification, :candidate_addresses => addresses, :xml => response, :request => last_request)
+    end
+
+    # Converts from a AddressKeyFormat XML node to a Location
+    def location_from_address_key_format_node(address)
+      return nil unless address
+      country = address.at('CountryCode').try(:text)
+      country = 'US' if country == 'ZZ' # Sometimes returned by SUREPOST in the US
+
+      address_lines = address.css('AddressLine')
+
+      Location.new(
+        :country     => country,
+        :postal_code => address.at('PostcodePrimaryLow').try(:text),
+        :province    => address.at('PoliticalDivision1').try(:text),
+        :city        => address.at('PoliticalDivision2').try(:text),
+        :address1    => address_lines[0].try(:text),
+        :address2    => address_lines[1].try(:text),
+        :address3    => address_lines[2].try(:text),
+      )
+    end
+
+    def location_from_address_node(address)
+      return nil unless address
+      country = address.at('CountryCode').try(:text)
+      country = 'US' if country == 'ZZ' # Sometimes returned by SUREPOST in the US
+      country = 'XK' if country == 'KV' # ActiveUtils now refers to Kosovo by XK
+      Location.new(
+        :country     => country,
+        :postal_code => address.at('PostalCode').try(:text),
+        :province    => address.at('StateProvinceCode').try(:text),
+        :city        => address.at('City').try(:text),
+        :address1    => address.at('AddressLine1').try(:text),
+        :address2    => address.at('AddressLine2').try(:text),
+        :address3    => address.at('AddressLine3').try(:text)
+      )
+    end
+
+    def parse_ups_datetime(options = {})
+      time, date = options[:time].try(:text), options[:date].text
+      if time.nil?
+        hour, minute, second = 0
+      else
+        hour, minute, second = time.scan(/\d{2}/)
+      end
+      year, month, day = date[0..3], date[4..5], date[6..7]
+
+      Time.utc(year, month, day, hour, minute, second)
+    end
+
+    def response_success?(document)
+      document.root.at('Response/ResponseStatusCode').text == '1'
+    end
+
+    def response_message(document)
+      status = document.root.at_xpath('Response/ResponseStatusDescription').try(:text)
+      desc = document.root.at_xpath('Response/Error/ErrorDescription').try(:text)
+      [status, desc].select(&:present?).join(": ").presence || "UPS could not process the request."
+    end
+
+    def rate_warning_messages(rate_xml)
+      rate_xml.xpath("RatedShipmentWarning").map { |warning| warning.text }
+    end
+
+    def response_digest(xml)
+      xml.root.at('ShipmentDigest').text
+    end
+
+    def parse_ship_confirm(response)
+      build_document(response, 'ShipmentConfirmResponse')
+    end
+
+    def parse_ship_accept(response)
+      xml     = build_document(response, 'ShipmentAcceptResponse')
+      success = response_success?(xml)
+      message = response_message(xml)
+
+      response_info = Hash.from_xml(response).values.first
+      packages = response_info["ShipmentResults"]["PackageResults"]
+      packages = [packages] if Hash === packages
+      labels = packages.map do |package|
+        Label.new(package["TrackingNumber"], Base64.decode64(package["LabelImage"]["GraphicImage"]))
+      end
+
+      LabelResponse.new(success, message, response_info, {labels: labels})
+    end
+
+    def commit(action, request, test = false)
+      response = ssl_post("#{test ? TEST_URL : LIVE_URL}/#{RESOURCES[action]}", request)
+      response.encode('utf-8', 'iso-8859-1')
+    end
+
+    def within_same_area?(origin, location)
+      return false unless location
+      matching_country_codes = origin.country_code(:alpha2) == location.country_code(:alpha2)
+      matching_or_blank_city = location.city.blank? || location.city == origin.city
+      matching_country_codes && matching_or_blank_city
+    end
+
+    def service_name_for(origin, code)
+      origin = origin.country_code(:alpha2)
+
+      name = case origin
+      when "CA" then CANADA_ORIGIN_SERVICES[code]
+      when "MX" then MEXICO_ORIGIN_SERVICES[code]
+      when *EU_COUNTRY_CODES then EU_ORIGIN_SERVICES[code]
+      end
+
+      name ||= OTHER_NON_US_ORIGIN_SERVICES[code] unless name == 'US'
+      name || DEFAULT_SERVICES[code]
+    end
+
+    def allow_package_level_reference_numbers(origin, destination)
+      # if the package is US -> US or PR -> PR the only type of reference numbers that are allowed are package-level
+      # Otherwise the only type of reference numbers that are allowed are shipment-level
+      [['US','US'],['PR', 'PR']].include?([origin,destination].map(&:country_code))
+    end
+
+    def handle_delivery_confirmation_options(origin, destination, packages, options)
+      if package_level_delivery_confirmation?(origin, destination)
+        handle_package_level_delivery_confirmation(origin, destination, packages, options)
+      else
+        handle_shipment_level_delivery_confirmation(origin, destination, packages, options)
+      end
+    end
+
+    def handle_package_level_delivery_confirmation(origin, destination, packages, options)
+      packages.each do |package|
+        # Transfer shipment-level option to package with no specified delivery_confirmation
+        package.options[:delivery_confirmation] = options[:delivery_confirmation] unless package.options[:delivery_confirmation]
+
+        # Assert that option is valid
+        if package.options[:delivery_confirmation] && !PACKAGE_DELIVERY_CONFIRMATION_CODES[package.options[:delivery_confirmation]]
+          raise "Invalid delivery_confirmation option on package: '#{package.options[:delivery_confirmation]}'. Use a key from PACKAGE_DELIVERY_CONFIRMATION_CODES"
+        end
+      end
+      options.delete(:delivery_confirmation)
+    end
+
+    def handle_shipment_level_delivery_confirmation(origin, destination, packages, options)
+      if packages.any? { |p| p.options[:delivery_confirmation] }
+        raise "origin/destination pair does not support package level delivery_confirmation options"
+      end
+
+      if options[:delivery_confirmation] && !SHIPMENT_DELIVERY_CONFIRMATION_CODES[options[:delivery_confirmation]]
+        raise "Invalid delivery_confirmation option: '#{options[:delivery_confirmation]}'. Use a key from SHIPMENT_DELIVERY_CONFIRMATION_CODES"
+      end
+    end
+
+    # For certain origin/destination pairs, UPS allows each package in a shipment to have a specified delivery_confirmation option
+    # otherwise the delivery_confirmation option must be specified on the entire shipment.
+    # See Appendix P of UPS Shipping Package XML Developers Guide for the rules on which the logic below is based.
+    def package_level_delivery_confirmation?(origin, destination)
+      origin.country_code == destination.country_code ||
+        [['US','PR'], ['PR','US']].include?([origin,destination].map(&:country_code))
+    end
+
+    def mapped_country_code(country_code)
+      COUNTRY_MAPPING[country_code].presence || country_code
+    end
   end
+end
