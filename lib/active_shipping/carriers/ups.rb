@@ -587,18 +587,18 @@ module ActiveShipping
     end
 
     def build_international_forms(xml, origin, destination, packages, options)
-      xml.InternaiontalForms do
-        xml.EEIFilingOption do
-          xml.Code(3)
-          xml.EMailAddress(origin.email)
-          xml.UPSFiled do
-            xml.POA do
-              xml.Code(2)
+      if options[:paperless_invoice]
+        xml.InternaiontalForms do
+          xml.EEIFilingOption do
+            xml.Code(3)
+            xml.EMailAddress(origin.email)
+            xml.UPSFiled do
+              xml.POA do
+                xml.Code(2)
+              end
             end
           end
-        end
 
-        if options[:paperless_invoice]
           xml.FormType('01') # 01 is "Invoice"
           xml.InvoiceDate(options[:invoice_date] || Date.today.strftime('%Y%m%d'))
           xml.ReasonForExport(options[:reason_for_export] || 'SALE')
