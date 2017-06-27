@@ -651,7 +651,6 @@ module ActiveShipping
       # not implemented:  * Shipment/Shipper/Name element
       #                   * Shipment/(ShipTo|ShipFrom)/CompanyName element
       #                   * Shipment/(Shipper|ShipTo|ShipFrom)/AttentionName element
-      #                   * Shipment/(Shipper|ShipTo|ShipFrom)/TaxIdentificationNumber element
       xml.public_send(name) do
         if shipper_name = (location.name || location.company_name || options[:origin_name])
           xml.Name(shipper_name)
@@ -661,7 +660,7 @@ module ActiveShipping
 
         if name == 'Shipper' and (origin_account = options[:origin_account] || @options[:origin_account])
           xml.ShipperNumber(origin_account)
-          xml.TaxIdentificationNumber(location.tin) if !location.tin.nil?
+          xml.TaxIdentificationNumber(location.tin)
         elsif name == 'ShipTo' and (destination_account = options[:destination_account] || @options[:destination_account])
           xml.ShipperAssignedIdentificationNumber(destination_account)
         end
