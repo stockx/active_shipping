@@ -588,7 +588,7 @@ module ActiveShipping
 
     def build_international_forms(xml, origin, destination, packages, options)
       if options[:paperless_invoice]
-        xml.InternaiontalForms do
+        xml.InternationalForms do
           if options[:eei_filing]
             xml.EEIFilingOption do
               xml.Code(3)
