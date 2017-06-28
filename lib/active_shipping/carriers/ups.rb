@@ -441,6 +441,10 @@ module ActiveShipping
                   xml.Type('01')
                   build_billing_info_node(xml, options)
                 end
+                xml.ShipmentCharge do
+                  xml.Type('02')
+                  build_billing_info_node(xml, options)
+                end
                 if options[:terms_of_shipment] == 'DDP' && options[:international]
                   # DDP stands for delivery duty paid and means the shipper will cover duties and taxes
                   # Otherwise UPS will charge the receiver
