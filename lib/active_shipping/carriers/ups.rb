@@ -666,6 +666,7 @@ module ActiveShipping
           xml.Name(shipper_name)
         end
         xml.PhoneNumber(location.phone.gsub(/[^\d]/, '')) unless location.phone.blank?
+        xml.EMailAddress(location.email) unless location.email.blank?
         xml.FaxNumber(location.fax.gsub(/[^\d]/, '')) unless location.fax.blank?
 
         if name == 'Shipper' and (origin_account = options[:origin_account] || @options[:origin_account])
@@ -677,10 +678,6 @@ module ActiveShipping
 
         if name = (location.company_name || location.name || options[:origin_name])
           xml.CompanyName(name)
-        end
-
-        if phone = location.phone
-          xml.PhoneNumber(phone)
         end
 
         if attn = location.name
