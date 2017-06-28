@@ -452,18 +452,13 @@ module ActiveShipping
               end
             end
 
-            if options[:international]
-              # unless options[:return]
-              build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
-              # end
+            xml.InvoiceLineTotal do
+              total_value = packages.inject(0) {|sum, package| sum + (package.value || 0)}
+              xml.MonetaryValue(total_value)
+            end
 
-              if origin.country_code(:alpha2) == 'US' && ['CA', 'PR'].include?(destination.country_code(:alpha2))
-                # Required for shipments from the US to Puerto Rico or Canada
-                xml.InvoiceLineTotal do
-                  total_value = packages.inject(0) {|sum, package| sum + (package.value || 0)}
-                  xml.MonetaryValue(total_value)
-                end
-              end
+            if options[:international]
+              build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
 
               contents_description = packages.map {|p| p.options[:description]}.compact.join(',')
               unless contents_description.empty?
