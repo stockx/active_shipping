@@ -662,14 +662,14 @@ module ActiveShipping
       #                   * Shipment/(ShipTo|ShipFrom)/CompanyName element
       #                   * Shipment/(Shipper|ShipTo|ShipFrom)/AttentionName element
       xml.public_send(name) do
-        if shipper_name = (location.name || location.company_name || options[:origin_name])
-          xml.Name(shipper_name)
-        end
         xml.PhoneNumber(location.phone.gsub(/[^\d]/, '')) unless location.phone.blank?
         xml.EMailAddress(location.email) unless location.email.blank?
         xml.FaxNumber(location.fax.gsub(/[^\d]/, '')) unless location.fax.blank?
 
         if name == 'Shipper' and (origin_account = options[:origin_account] || @options[:origin_account])
+          if shipper_name = (location.name || location.company_name || options[:origin_name])
+            xml.Name(shipper_name)
+          end
           xml.ShipperNumber(origin_account)
           xml.TaxIdentificationNumber(location.tin)
         elsif name == 'ShipTo' and (destination_account = options[:destination_account] || @options[:destination_account])
