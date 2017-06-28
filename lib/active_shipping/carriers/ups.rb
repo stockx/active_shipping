@@ -591,7 +591,7 @@ module ActiveShipping
           if options[:eei_filing]
             xml.EEIFilingOption do
               xml.Code(3)
-              xml.EMailAddress(origin.email)
+              xml.EMailAddress(options[:shipper].email)
               xml.UPSFiled do
                 xml.POA do
                   xml.Code(2)
