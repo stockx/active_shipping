@@ -676,7 +676,7 @@ module ActiveShipping
           xml.ShipperAssignedIdentificationNumber(destination_account)
         end
 
-        if name = (location.company_name || location.name || options[:origin_name])
+        if name != 'Shipper' and name = (location.company_name || location.name || options[:origin_name])
           xml.CompanyName(name)
         end
 
@@ -693,7 +693,6 @@ module ActiveShipping
           # StateProvinceCode required for negotiated rates but not otherwise, for some reason
           xml.PostalCode(location.postal_code) unless (location.postal_code.nil? || location.postal_code.blank?)
           xml.CountryCode(mapped_country_code(location.country_code(:alpha2))) unless location.country_code(:alpha2).blank?
-          xml.ResidentialAddressIndicator(true) unless location.commercial? # the default should be that UPS returns residential rates for destinations that it doesn't know about
           # not implemented: Shipment/(Shipper|ShipTo|ShipFrom)/Address/ResidentialAddressIndicator element
         end
       end
