@@ -167,6 +167,11 @@ module ActiveShipping
       commit(:TrackShipment, request)
     end
 
+    def create_scan_form(origin, txids, options = {})
+      request = build_create_scan_form_request(origin, txids, options)
+      commit(:CreateScanForm, request)
+    end
+
     def namespace
       NAMESPACE
     end
@@ -445,6 +450,9 @@ module ActiveShipping
           xml['tns'].public_send(options[:stamps_tx_id] ? :StampsTxID : :TrackingNumber, shipment_id)
         end
       end
+    end
+
+    def build_create_scan_form_request(origin, txids, options)
     end
 
     def commit(swsim_method, request)
