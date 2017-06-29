@@ -713,10 +713,8 @@ module ActiveShipping
       xml.Package do
         # not implemented:  * Shipment/Package/PackagingType element
 
-        if options[:international]
-          contents_description = package.options[:description]
-          xml.Description(contents_description) if contents_description
-        end
+        contents_description = package.options[:description]
+        xml.Description(contents_description) if contents_description
 
         xml.PackagingType do
           xml.Code('02')
@@ -1119,10 +1117,10 @@ module ActiveShipping
     end
 
     def response_message(document)
-      p document
       status = document.root.at_xpath('Response/ResponseStatusDescription').try(:text)
       desc = document.root.at_xpath('Response/Error/ErrorDescription').try(:text)
-      [status, desc].select(&:present?).join(": ").presence || "UPS could not process the request."
+      node = document.root.at_xpath('Response/Error/ErrorLocation/ErrorLocationElementName').try(:text)
+      [status, desc, node].select(&:present?).join(": ").presence || "UPS could not process the request."
     end
 
     def rate_warning_messages(rate_xml)
