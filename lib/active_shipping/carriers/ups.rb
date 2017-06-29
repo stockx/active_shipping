@@ -1119,6 +1119,7 @@ module ActiveShipping
     end
 
     def response_message(document)
+      p document
       status = document.root.at_xpath('Response/ResponseStatusDescription').try(:text)
       desc = document.root.at_xpath('Response/Error/ErrorDescription').try(:text)
       [status, desc].select(&:present?).join(": ").presence || "UPS could not process the request."
