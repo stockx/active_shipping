@@ -453,6 +453,16 @@ module ActiveShipping
     end
 
     def build_create_scan_form_request(origin, txids, options)
+      xml['tns'].CreateScanForm do
+        xml['tns'].Authenticator(authenticator)
+
+        add_address(xml, origin, :From)
+
+        xml['tns'].ShipDate(options[:ship_date])
+        xml['tns'].Carrier(options[:carrier] || 'Usps')
+        xml['tns'].ImageType(options[:image_type] || 'Pdf')
+        xml['tns'].PrintInstructions(options[:print_instructions] || false)
+      end
     end
 
     def commit(swsim_method, request)
