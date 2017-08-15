@@ -1135,14 +1135,8 @@ module ActiveShipping
 
     def parse_ship_confirm(response, ship_confirm_only)
       document = build_document(response, 'ShipmentConfirmResponse')
-      return document if ship_confirm_only
-
-      success = response_success?(xml)
-      message = response_message(xml)
-
-      p "Response: #{response}"
-      p "*"*50
-      p Hash.from_xml(response)
+      return document unless ship_confirm_only
+      { success: response_success?(xml), message: response_message(xml) }
     end
 
     def parse_ship_accept(response)
