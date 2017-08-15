@@ -194,7 +194,9 @@ module ActiveShipping
       # ... now, get the digest, it's needed to get the label.  In theory,
       # one could make decisions based on the price or some such to avoid
       # surprises.  This also has *no* error handling yet.
-      xml = parse_ship_confirm(confirm_response)
+      xml = parse_ship_confirm(confirm_response, options[:ship_confirm_only])
+      return xml if options[:ship_confirm_only]
+
       success = response_success?(xml)
       message = response_message(xml)
       raise ActiveShipping::ResponseContentError, StandardError.new(message) unless success
@@ -1131,8 +1133,16 @@ module ActiveShipping
       xml.root.at('ShipmentDigest').text
     end
 
-    def parse_ship_confirm(response)
-      build_document(response, 'ShipmentConfirmResponse')
+    def parse_ship_confirm(response, ship_confirm_only)
+      document = build_document(response, 'ShipmentConfirmResponse')
+      return document if ship_confirm_only
+
+      success = response_success?(xml)
+      message = response_message(xml)
+
+      p "Response: #{response}"
+      p "*"*50
+      p Hash.from_xml(response)
     end
 
     def parse_ship_accept(response)
