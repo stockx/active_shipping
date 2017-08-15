@@ -195,10 +195,7 @@ module ActiveShipping
       # one could make decisions based on the price or some such to avoid
       # surprises.  This also has *no* error handling yet.
       xml = parse_ship_confirm(confirm_response, options[:ship_confirm_only])
-      if options[:ship_confirm_only]
-        p "true"
-        return xml
-      end
+      return xml if options[:ship_confirm_only]
 
       success = response_success?(xml)
       message = response_message(xml)
@@ -1139,7 +1136,7 @@ module ActiveShipping
     def parse_ship_confirm(response, ship_confirm_only)
       document = build_document(response, 'ShipmentConfirmResponse')
       return document unless ship_confirm_only
-      p { success: response_success?(xml), message: response_message(xml) }
+      { success: response_success?(xml), message: response_message(xml) }
     end
 
     def parse_ship_accept(response)
