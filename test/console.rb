@@ -36,5 +36,6 @@ end
 @shipwire = create_carrier(Shipwire,:shipwire)
 @ups      = create_carrier(UPS,:ups)
 @usps     = create_carrier(USPS,:usps)
+@iparcel  = create_carrier(IPARCEL,:iparcel)
 # Tips: call reload! to reload all the active_shipping files, use fixtures from test_helpers for parameters
 binding.pry
