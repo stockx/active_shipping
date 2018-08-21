@@ -428,6 +428,9 @@ module ActiveShipping
             end
 
             if options[:prepay]
+              # https://www.ups.com/us/en/help-center/billing-payment/international.page
+              # "Unless otherwise indicated, shipping charges are billed to the shipper's UPS Account Number and the consignee or receiver pays duties & taxes"
+              # Therefore terms_of_shipment=='DDP' must be prepay==false
               xml.PaymentInformation do
                 xml.Prepaid do
                   xml.BillShipper do
@@ -441,10 +444,6 @@ module ActiveShipping
                   # Type '01' means 'Transportation'
                   # This node specifies who will be billed for transportation.
                   xml.Type('01')
-                  build_billing_info_node(xml, options)
-                end
-                xml.ShipmentCharge do
-                  xml.Type('02')
                   build_billing_info_node(xml, options)
                 end
                 if options[:terms_of_shipment] == 'DDP' && options[:international]
