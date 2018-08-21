@@ -616,7 +616,7 @@ module ActiveShipping
             xml.Product do |xml|
               xml.Description(package.options[:description] || options[:description])
               xml.CommodityCode(package.options[:commodity_code])
-              xml.AdditionalDescription(package.options[:additional_description])
+              xml.AdditionalComments(package.options[:additional_comments])
               xml.OriginCountryCode(options[:country_of_origin])
               xml.Unit do |xml|
                 xml.Value(package.value / (package.options[:item_count] || 1))
