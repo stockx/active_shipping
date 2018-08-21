@@ -140,4 +140,5 @@ module ActiveShipping
           puts "failed #{e}"
       end
     end
+  end
 end
