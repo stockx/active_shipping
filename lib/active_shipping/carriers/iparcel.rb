@@ -3,7 +3,7 @@ module ActiveShipping
 
         cattr_accessor :default_options
         cattr_reader :name
-        @@name = "I-PARCEL"
+        @@name = "IPARCEL"
   
     def shipment_cost(shipping_event)
       if shipping_event.nil?
@@ -140,4 +140,4 @@ module ActiveShipping
           puts "failed #{e}"
       end
     end
-  end
+end
