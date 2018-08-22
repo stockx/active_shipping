@@ -607,20 +607,16 @@ module ActiveShipping
           xml.ReasonForExport(options[:reason_for_export] || 'SALE')
           xml.CurrencyCode(options[:currency_code] || 'USD')
           xml.InvoiceNumber(options[:invoice_number])
-          xml.Comments("hamburger")
-          xml.AdditionalComments("grape")
-          xml.AdditionalDescription("berry")
+          xml.Comments(package.options[:comments])
 
           if options[:terms_of_shipment]
             xml.TermsOfShipment(options[:terms_of_shipment])
           end
 
-            # xml.Description(package.options[:description] || options[:description])
-
           packages.each do |package|
             xml.Product do |xml|
-              xml.Description("lemon")
-              xml.CommodityCode("LIMEADE")
+              xml.Description(package.options[:description] || options[:description])
+              xml.CommodityCode(package.options[:commodity_code])
               xml.OriginCountryCode(options[:country_of_origin])
               xml.Unit do |xml|
                 xml.Value(package.value / (package.options[:item_count] || 1))
