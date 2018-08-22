@@ -612,9 +612,11 @@ module ActiveShipping
             xml.TermsOfShipment(options[:terms_of_shipment])
           end
 
+            # xml.Description(package.options[:description] || options[:description])
+
           packages.each do |package|
             xml.Product do |xml|
-              xml.Description(package.options[:description] || options[:description])
+              xml.Description("lemon")
               xml.CommodityCode(package.options[:commodity_code])
               xml.AdditionalComments(package.options[:additional_comments])
               xml.OriginCountryCode(options[:country_of_origin])
