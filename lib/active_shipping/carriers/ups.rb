@@ -617,7 +617,7 @@ module ActiveShipping
           packages.each do |package|
             xml.Product do |xml|
               xml.Description("lemon")
-              xml.CommodityCode("lime")
+              xml.CommodityCode("LIMEADE")
               xml.AdditionalComments("grape")
               xml.AdditionalDescription("berry")
               xml.OriginCountryCode(options[:country_of_origin])
