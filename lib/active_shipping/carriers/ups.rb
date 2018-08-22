@@ -607,7 +607,7 @@ module ActiveShipping
           xml.ReasonForExport(options[:reason_for_export] || 'SALE')
           xml.CurrencyCode(options[:currency_code] || 'USD')
           xml.InvoiceNumber(options[:invoice_number])
-          xml.Comments(package.options[:comments])
+          xml.Comments(options[:comments])
 
           if options[:terms_of_shipment]
             xml.TermsOfShipment(options[:terms_of_shipment])
