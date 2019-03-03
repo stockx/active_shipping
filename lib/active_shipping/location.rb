@@ -44,6 +44,7 @@ module ActiveShipping #:nodoc:
       @country = if options[:country].nil? || options[:country].is_a?(ActiveUtils::Country)
         options[:country]
       else
+        puts 'HIHIHHIHHIHIHIHIHIHI'
         ActiveUtils::Country.find(options[:country])
       end
 
