@@ -41,8 +41,8 @@ module ActiveShipping #:nodoc:
     alias_method :company, :company_name
 
     def initialize(options = {})
-      puts 'YYYYYYYYYYYYYYYYYYYYYYYY'
-      puts 'YYYYYYYYYYYYYYYYYYYYYYYY'
+      logger.debug('YYYYYYYYYYYYYYYYYYYYYYYY')
+      
       @country = if options[:country].nil? || options[:country].is_a?(ActiveUtils::Country)
         options[:country]
       else
