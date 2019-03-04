@@ -41,7 +41,20 @@ module ActiveShipping #:nodoc:
     alias_method :company, :company_name
 
     def initialize(options = {})
-      @country = options[:country]
+      @country = if options[:country].nil? || options[:country].is_a?(ActiveUtils::Country)
+        options[:country]
+      elsif (options[:country] == 'IC')
+        ic_country_options = {
+          :alpha2 => 'IC',
+          :name => 'Canary Islands',
+          :alpha3 => 'ISC',
+          :numeric => '724'
+        }
+        ActiveUtils::Country.new(ic_country_options)
+      else
+        ActiveUtils::Country.find(options[:country])
+      end
+
       @postal_code = options[:postal_code] || options[:postal] || options[:zip]
       @province = options[:province] || options[:state] || options[:territory] || options[:region]
       @city = options[:city]
