@@ -189,6 +189,8 @@ module ActiveShipping
       confirm_request = build_shipment_request(origin, destination, packages, options)
       logger.debug(confirm_request) if logger
 
+      puts '-----accessrequest'
+      puts access_request.inspect
       puts '---------confirmrequest-------'
       puts confirm_request.inspect
 
@@ -200,7 +202,7 @@ module ActiveShipping
       # surprises.  This also has *no* error handling yet.
       xml = parse_ship_confirm(confirm_response, options[:ship_confirm_only])
       puts 'checkthis'
-      puts xml.inspect
+      puts Hash.from_xml(xml).as_json
       return xml if options[:ship_confirm_only]
 
       success = response_success?(xml)
@@ -468,14 +470,14 @@ module ActiveShipping
               xml.MonetaryValue(total_value)
             end
 
-            # if options[:international]
-            #   build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
+            if options[:international]
+              build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
 
-            #   contents_description = packages.map {|p| p.options[:description]}.compact.join(',')
-            #   unless contents_description.empty?
-            #     xml.Description(contents_description)
-            #   end
-            # end
+              contents_description = packages.map {|p| p.options[:description]}.compact.join(',')
+              unless contents_description.empty?
+                xml.Description(contents_description)
+              end
+            end
 
             if options[:return]
               xml.ReturnService do
