@@ -471,10 +471,10 @@ module ActiveShipping
             # if options[:international]
             #   build_location_node(xml, 'SoldTo', options[:sold_to] || destination, options)
 
-              contents_description = packages.map {|p| p.options[:description]}.compact.join(',')
-              unless contents_description.empty?
-                xml.Description(contents_description)
-              end
+              # contents_description = packages.map {|p| p.options[:description]}.compact.join(',')
+              # unless contents_description.empty?
+              #   xml.Description(contents_description)
+              # end
             end
 
             if options[:return]
