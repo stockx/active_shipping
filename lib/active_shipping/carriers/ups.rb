@@ -180,6 +180,7 @@ module ActiveShipping
     end
 
     def create_shipment(origin, destination, packages, options = {})
+      puts 'GGGGGGGGGGGGG'
       options = @options.merge(options)
       packages = Array(packages)
       access_request = build_access_request
@@ -252,7 +253,7 @@ module ActiveShipping
       parse_address_validation_response(location, response, options)
     end
 
-    protected
+    
 
     def upsified_location(location)
       if location.country_code == 'US' && US_TERRITORIES_TREATED_AS_COUNTRIES.include?(location.state)
