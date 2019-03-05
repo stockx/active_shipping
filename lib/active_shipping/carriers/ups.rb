@@ -188,6 +188,11 @@ module ActiveShipping
       confirm_request = build_shipment_request(origin, destination, packages, options)
       logger.debug(confirm_request) if logger
 
+      puts '-----accessrequest'
+      puts access_request.inspect
+      puts '---------confirmrequest-------'
+      puts confirm_request.inspect
+
       confirm_response = commit(:ship_confirm, save_request(access_request + confirm_request), (options[:test] || false))
       logger.debug(confirm_response) if logger
 
@@ -195,6 +200,8 @@ module ActiveShipping
       # one could make decisions based on the price or some such to avoid
       # surprises.  This also has *no* error handling yet.
       xml = parse_ship_confirm(confirm_response, options[:ship_confirm_only])
+      puts 'checkthis'
+      puts Hash.from_xml(xml).as_json
       return xml if options[:ship_confirm_only]
 
       success = response_success?(xml)
