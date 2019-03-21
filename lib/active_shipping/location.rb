@@ -43,6 +43,14 @@ module ActiveShipping #:nodoc:
     def initialize(options = {})
       @country = if options[:country].nil? || options[:country].is_a?(ActiveUtils::Country)
         options[:country]
+      elsif (options[:country] == 'IC')
+        ic_country_options = {
+          :alpha2 => 'IC',
+          :name => 'Canary Islands',
+          :alpha3 => 'ISC',
+          :numeric => '724'
+        }
+        ActiveUtils::Country.new(ic_country_options)
       else
         ActiveUtils::Country.find(options[:country])
       end
