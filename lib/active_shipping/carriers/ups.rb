@@ -674,7 +674,7 @@ module ActiveShipping
           xml.ShipperNumber(origin_account)
           xml.TaxIdentificationNumber(location.tin)
         elsif name == 'ShipTo' and (destination_account = options[:destination_account] || @options[:destination_account])
-          xml.LocationID = options[:location_id] || @options[:location_id]
+          xml.LocationID = options[:ups_location_id] || @options[:ups_location_id]
           xml.ShipperAssignedIdentificationNumber(destination_account)
         end
 
