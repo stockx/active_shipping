@@ -191,6 +191,8 @@ module ActiveShipping
       confirm_response = commit(:ship_confirm, save_request(access_request + confirm_request), (options[:test] || false))
       logger.debug(confirm_response) if logger
 
+      puts confirm_response.inspect
+
       # ... now, get the digest, it's needed to get the label.  In theory,
       # one could make decisions based on the price or some such to avoid
       # surprises.  This also has *no* error handling yet.
