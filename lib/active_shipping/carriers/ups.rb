@@ -188,6 +188,8 @@ module ActiveShipping
       confirm_request = build_shipment_request(origin, destination, packages, options)
       logger.debug(confirm_request) if logger
 
+      puts confirm_request.inspect
+
       confirm_response = commit(:ship_confirm, save_request(access_request + confirm_request), (options[:test] || false))
       logger.debug(confirm_response) if logger
 
