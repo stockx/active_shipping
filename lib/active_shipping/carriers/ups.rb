@@ -677,9 +677,9 @@ module ActiveShipping
           end
           xml.ShipperNumber(origin_account)
           xml.TaxIdentificationNumber(location.tin)
-        elsif name == 'ShipTo' and (destination_account = options[:destination_account] || @options[:destination_account])
-          xml.LocationID = options[:ups_location_code] || @options[:ups_location_code]
-          xml.ShipperAssignedIdentificationNumber(destination_account)
+        elsif name == 'ShipTo' and (ups_location_code = options[:ups_location_code] || @options[:ups_location_code])
+          puts 'in the elsif'
+          xml.LocationID(ups_location_code)
         end
 
         if name != 'Shipper' and name = (location.company_name || location.name || options[:origin_name])
