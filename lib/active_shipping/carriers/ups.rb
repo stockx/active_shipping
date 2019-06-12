@@ -614,7 +614,7 @@ module ActiveShipping
             xml.TermsOfShipment(options[:terms_of_shipment])
           end
 
-          packages.first.options[:products] do |package|
+          packages.first.options[:products].each do |package|
             xml.Product do |xml|
               xml.Description(package.options[:description] || options[:description])
               xml.CommodityCode(package.options[:commodity_code])
