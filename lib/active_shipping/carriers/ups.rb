@@ -612,22 +612,30 @@ module ActiveShipping
             xml.TermsOfShipment(options[:terms_of_shipment])
           end
 
-          packages.each do |package|
+          products(packages).each do |product|
             xml.Product do |xml|
-              xml.Description(package.options[:description] || options[:description])
-              xml.CommodityCode(package.options[:commodity_code])
-              xml.OriginCountryCode(options[:country_of_origin])
+              xml.Description(product.options[:description] || options[:description])
+              xml.CommodityCode(product.options[:commodity_code])
+              xml.OriginCountryCode(product.options[:country_of_origin])
               xml.Unit do |xml|
-                xml.Value(package.value / (package.options[:item_count] || 1))
-                xml.Number((package.options[:item_count] || 1))
+                xml.Value(product.value / (product.options[:item_count] || 1))
+                xml.Number((product.options[:item_count] || 1))
                 xml.UnitOfMeasurement do |xml|
                   # NMB = number. You can specify units in barrels, boxes, etc. Codes are in the api docs.
-                  xml.Code(package.options[:unit_of_item_count] || 'NMB')
+                  xml.Code(product.options[:unit_of_item_count] || 'NMB')
                 end
               end
             end
           end
         end
+      end
+    end
+
+    def products(packages)
+      if packages && packages.first && packages.first.options && packages.first.options[:products]
+        packages.first.options[:products]
+      else
+        []
       end
     end
 
