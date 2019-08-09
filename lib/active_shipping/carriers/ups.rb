@@ -195,6 +195,7 @@ module ActiveShipping
       # one could make decisions based on the price or some such to avoid
       # surprises.  This also has *no* error handling yet.
       xml = parse_ship_confirm(confirm_response, options[:ship_confirm_only])
+      puts xml.inspect
       return xml if options[:ship_confirm_only]
 
       success = response_success?(xml)
