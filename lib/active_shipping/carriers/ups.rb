@@ -197,23 +197,29 @@ module ActiveShipping
       # surprises.  This also has *no* error handling yet.
       xml = parse_ship_confirm(confirm_response, options[:ship_confirm_only])
 
+      puts xml.inspect
+
       return xml if options[:ship_confirm_only]
 
       success = response_success?(xml)
       message = response_message(xml)
       raise ActiveShipping::ResponseContentError, StandardError.new(message) unless success
       digest  = response_digest(xml)
+      puts digest.inspect
 
       # STEP 2: Accept. Use shipment digest in first response to get the actual label.
       accept_request = build_accept_request(digest, options)
+      puts accept_request.inspect
       logger.debug(accept_request) if logger
 
       accept_response = commit(:ship_accept, save_request(access_request + accept_request), (options[:test] || false))
+      puts accept_response.inspect
       logger.debug(accept_response) if logger
 
       # ...finally, build a map from the response that contains
       # the label data and tracking information.
-      parse_ship_accept(accept_response)
+      parsed_accept_response = parse_ship_accept(accept_response)
+      puts parsed_accept_response.inspect
     end
 
     def get_delivery_date_estimates(origin, destination, packages, pickup_date=Date.current, options = {})
