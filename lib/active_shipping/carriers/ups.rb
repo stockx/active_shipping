@@ -188,6 +188,7 @@ module ActiveShipping
       confirm_request = build_shipment_request(origin, destination, packages, options)
       logger.debug(confirm_request) if logger
 
+
       puts confirm_request.inspect
 
       confirm_response = commit(:ship_confirm, save_request(access_request + confirm_request), (options[:test] || false))
@@ -221,7 +222,6 @@ module ActiveShipping
       # ...finally, build a map from the response that contains
       # the label data and tracking information.
       parsed_accept_response = parse_ship_accept(accept_response)
-      puts parsed_accept_response.inspect
     end
 
     def get_delivery_date_estimates(origin, destination, packages, pickup_date=Date.current, options = {})
