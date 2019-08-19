@@ -1229,7 +1229,7 @@ module ActiveShipping
     # See Appendix P of UPS Shipping Package XML Developers Guide for the rules on which the logic below is based.
     def package_level_delivery_confirmation?(origin, destination)
       origin.country_code == destination.country_code ||
-        [['US','PR'], ['PR','US']].include?([origin,destination].map(&:country_code))
+        [['US','PR'], ['PR','US'], ['US','MZ'], ['MZ','US']].include?([origin,destination].map(&:country_code))
     end
 
     def mapped_country_code(country_code)
