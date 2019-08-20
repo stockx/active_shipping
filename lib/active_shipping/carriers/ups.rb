@@ -511,6 +511,8 @@ module ActiveShipping
           label_format = options[:label_format] ? options[:label_format].upcase : 'GIF'
           label_size = options[:label_size] ? options[:label_size] : [4, 6]
 
+          character_set = options[:character_set] ? options[:character_set] : 'eng'
+
           xml.LabelSpecification do
             xml.LabelStockSize do
               xml.Height(label_size[0])
@@ -528,6 +530,8 @@ module ActiveShipping
                 xml.Code(label_format)
               end
             end
+
+            xml.CharacterSet(character_set)
           end
         end
       end
