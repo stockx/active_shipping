@@ -1202,7 +1202,7 @@ module ActiveShipping
     def allow_package_level_reference_numbers(origin, destination)
       # if the package is US -> US or PR -> PR the only type of reference numbers that are allowed are package-level
       # Otherwise the only type of reference numbers that are allowed are shipment-level
-      [['US','US'],['PR', 'PR']].include?([origin,destination].map(&:country_code))
+      [['US','US'],['PR', 'PR'],['MZ', 'US']].include?([origin,destination].map(&:country_code))
     end
 
     def handle_delivery_confirmation_options(origin, destination, packages, options)
