@@ -186,9 +186,15 @@ module ActiveShipping
 
       # STEP 1: Confirm.  Validation step, important for verifying price.
       confirm_request = build_shipment_request(origin, destination, packages, options)
+      puts '--------------------confirm_request_log_output_begin--------------------'
+      puts confirm_request.inspect
+      puts '--------------------confirm_request_log_output_end--------------------'
       logger.debug(confirm_request) if logger
 
       confirm_response = commit(:ship_confirm, save_request(access_request + confirm_request), (options[:test] || false))
+      puts '--------------------confirm_response_log_output_begin--------------------'
+      puts confirm_response.inspect
+      puts '--------------------confirm_response_log_output_end--------------------'
       logger.debug(confirm_response) if logger
 
       # ... now, get the digest, it's needed to get the label.  In theory,
@@ -204,9 +210,15 @@ module ActiveShipping
 
       # STEP 2: Accept. Use shipment digest in first response to get the actual label.
       accept_request = build_accept_request(digest, options)
+      puts '--------------------accept_request_log_output_begin--------------------'
+      puts accept_request.inspect
+      puts '--------------------accept_request_log_output_end--------------------'
       logger.debug(accept_request) if logger
 
       accept_response = commit(:ship_accept, save_request(access_request + accept_request), (options[:test] || false))
+      puts '--------------------accept_response_log_output_begin--------------------'
+      puts accept_response.inspect
+      puts '--------------------accept_request_log_output_end--------------------'
       logger.debug(accept_response) if logger
 
       # ...finally, build a map from the response that contains
