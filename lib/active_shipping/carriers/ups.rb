@@ -424,7 +424,7 @@ module ActiveShipping
             build_location_node(xml, 'ShipTo', destination, options)
             build_location_node(xml, 'ShipFrom', origin, options)
             # Required element. The company whose account is responsible for the label(s).
-            build_location_node(xml, 'Shipper', shipper, options)
+            build_location_node(xml, 'Shipper', shipper, options) if !options[:bill_third_party]
 
             if options[:negotiated_rates]
               xml.RateInformation do
