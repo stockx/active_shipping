@@ -186,6 +186,7 @@ module ActiveShipping
 
       # STEP 1: Confirm.  Validation step, important for verifying price.
       confirm_request = build_shipment_request(origin, destination, packages, options)
+      puts confirm_request.inspect
       logger.debug(confirm_request) if logger
 
       confirm_response = commit(:ship_confirm, save_request(access_request + confirm_request), (options[:test] || false))
@@ -205,6 +206,7 @@ module ActiveShipping
       # STEP 2: Accept. Use shipment digest in first response to get the actual label.
       accept_request = build_accept_request(digest, options)
       logger.debug(accept_request) if logger
+      puts accept_request.inspect
 
       accept_response = commit(:ship_accept, save_request(access_request + accept_request), (options[:test] || false))
       logger.debug(accept_response) if logger
