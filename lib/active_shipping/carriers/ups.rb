@@ -612,6 +612,14 @@ module ActiveShipping
           xml.InvoiceNumber(options[:invoice_number])
           xml.Comments(options[:comments])
 
+          xml.FreightCharges do
+            xml.MonetaryValue(options[:processing_fee])
+          end
+
+          xml.OtherCharges do
+            xml.MonetaryValue(options[:shipping_amount])
+          end
+
           if options[:terms_of_shipment]
             xml.TermsOfShipment(options[:terms_of_shipment])
           end
