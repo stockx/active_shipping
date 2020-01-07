@@ -186,11 +186,9 @@ module ActiveShipping
 
       # STEP 1: Confirm.  Validation step, important for verifying price.
       confirm_request = build_shipment_request(origin, destination, packages, options)
-      puts confirm_request.inspect
       logger.debug(confirm_request) if logger
 
       confirm_response = commit(:ship_confirm, save_request(access_request + confirm_request), (options[:test] || false))
-      puts confirm_response.inspect
       logger.debug(confirm_response) if logger
 
       # ... now, get the digest, it's needed to get the label.  In theory,
