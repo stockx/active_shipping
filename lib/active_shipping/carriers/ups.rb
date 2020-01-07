@@ -620,7 +620,6 @@ module ActiveShipping
 
           xml.OtherCharges do
             xml.MonetaryValue(options[:shipping_amount])
-            xml.Description('')
           end
 
           if options[:terms_of_shipment]
