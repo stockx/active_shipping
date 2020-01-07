@@ -620,7 +620,7 @@ module ActiveShipping
 
           xml.OtherCharges do
             xml.MonetaryValue(options[:shipping_amount])
-            xml.Description('Processing Fee')
+            xml.Description('Processing')
           end
 
           if options[:terms_of_shipment]
