@@ -615,11 +615,11 @@ module ActiveShipping
           xml.Comments(options[:comments])
 
           xml.FreightCharges do
-            xml.MonetaryValue(options[:processing_fee])
+            xml.MonetaryValue(options[:shipping_amount])
           end
 
           xml.OtherCharges do
-            xml.MonetaryValue(options[:shipping_amount])
+            xml.MonetaryValue(options[:processing_fee])
             xml.Description('Processing')
           end
 
