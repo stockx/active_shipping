@@ -612,13 +612,17 @@ module ActiveShipping
           xml.InvoiceNumber(options[:invoice_number])
           xml.Comments(options[:comments])
 
-          xml.FreightCharges do
-            xml.MonetaryValue(options[:shipping_amount]) # Required, valid char 0-9, up to 2 decimal places, 15 char max including decimal
+          if options[:shipping_amount]
+            xml.FreightCharges do
+              xml.MonetaryValue(options[:shipping_amount]) # Required, valid char 0-9, up to 2 decimal places, 15 char max including decimal
+            end
           end
 
-          xml.OtherCharges do
-            xml.MonetaryValue(options[:processing_fee]) # Required, valid char 0-9, up to 2 decimal places, 15 char max including decimal
-            xml.Description('Processing') # Required, 1-10 chars
+          if options[:processing_fee]
+            xml.OtherCharges do
+              xml.MonetaryValue(options[:processing_fee]) # Required, valid char 0-9, up to 2 decimal places, 15 char max including decimal
+              xml.Description('Processing') # Required, 1-10 chars
+            end
           end
 
           if options[:terms_of_shipment]
