@@ -612,7 +612,7 @@ module ActiveShipping
           xml.InvoiceNumber(options[:invoice_number])
           xml.Comments(options[:comments])
 
-          if options[:shipping_amount].present?
+	      if options[:shipping_amount].present?
 	        xml.FreightCharges do
 	          xml.MonetaryValue(options[:shipping_amount]) # Required, valid char 0-9, up to 2 decimal places, 15 char max including decimal
 	        end
