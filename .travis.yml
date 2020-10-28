@@ -6,10 +6,12 @@ rvm:
 - "2.2.2"
 - "2.3.1"
 - "2.4.0"
+- "2.5.0"
 
 gemfile:
 - gemfiles/activesupport42.gemfile
 - gemfiles/activesupport50.gemfile
+- gemfiles/activesupport51.gemfile
 - gemfiles/activesupport_master.gemfile
 
 matrix:
