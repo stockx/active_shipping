@@ -149,7 +149,7 @@ class LocationTest < ActiveSupport::TestCase
   end
 
   test "#to_hash has the expected attributes" do
-    expected = %w(address1 address2 address3 address_type city company_name country fax name phone postal_code province)
+    expected = %w(address1 address2 address3 address_type city company_name country email fax name phone postal_code province tin)
 
     assert_equal expected, @location.to_hash.stringify_keys.keys.sort
   end
