@@ -9,7 +9,4 @@ jobs:
     executor: ruby/default
     steps:
       - checkout
-      - ruby/install:
-          version: '2.5'
-      - run: echo "Ruby 2.5 has been installed"
       - run: bundle exec rake test:unit
