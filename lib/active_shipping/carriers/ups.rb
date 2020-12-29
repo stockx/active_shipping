@@ -624,7 +624,7 @@ module ActiveShipping
                   xml.City(options[:sold_to][:city])
                   xml.StateProvinceCode(options[:sold_to][:state_province_code])
                   xml.PostalCode(options[:sold_to][:postal_code])
-                  xml.CountryCode(options[:sold_to][:postal_code])
+                  xml.CountryCode(options[:sold_to][:country_code])
                 end
               end
             end
