@@ -607,24 +607,24 @@ module ActiveShipping
 
           xml.FormType('01') # 01 is "Invoice"
 
-          if options[:sold_to]
+          if options[:bill_to]
             xml.Contacts do
               xml.SoldTo do
-                xml.Name(options[:sold_to][:company_name])
-                xml.AttentionName(options[:sold_to][:attention_name])
-                xml.TaxIdentificationNumber(options[:sold_to][:tin_number])
-                if options[:sold_to][:phone]
+                xml.Name(options[:bill_to][:company_name])
+                xml.AttentionName(options[:bill_to][:attention_name])
+                xml.TaxIdentificationNumber(options[:bill_to][:tin_number])
+                if options[:bill_to][:phone]
                   xml.Phone do
-                    xml.Number(options[:sold_to][:phone][:number])
-                    xml.Extension(options[:sold_to][:phone][:extension])
+                    xml.Number(options[:bill_to][:phone][:number])
+                    xml.Extension(options[:bill_to][:phone][:extension])
                   end
                 end
                 xml.Address do
-                  xml.AddressLine(options[:sold_to][:address1])
-                  xml.City(options[:sold_to][:city])
-                  xml.StateProvinceCode(options[:sold_to][:state_province_code])
-                  xml.PostalCode(options[:sold_to][:postal_code])
-                  xml.CountryCode(options[:sold_to][:country_code])
+                  xml.AddressLine(options[:bill_to][:address1])
+                  xml.City(options[:bill_to][:city])
+                  xml.StateProvinceCode(options[:bill_to][:state_province_code])
+                  xml.PostalCode(options[:bill_to][:postal_code])
+                  xml.CountryCode(options[:bill_to][:country_code])
                 end
               end
             end
