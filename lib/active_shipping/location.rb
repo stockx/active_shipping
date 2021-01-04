@@ -51,6 +51,13 @@ module ActiveShipping #:nodoc:
           :numeric => '724'
         }
         ActiveUtils::Country.new(ic_country_options)
+      elsif (options[:country] == 'XI')
+        xi_country_options = {
+          :alpha2 => 'XI',
+          :name => 'Northern Ireland'
+          # TODO: add alpha 3 and numeric
+        }
+        ActiveUtils::Country.new(xi_country_options)
       else
         ActiveUtils::Country.find(options[:country])
       end
