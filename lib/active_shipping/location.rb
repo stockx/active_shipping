@@ -57,7 +57,6 @@ module ActiveShipping #:nodoc:
           :name => 'Northern Ireland',
           :alpha3 => 'GBR', # TODO: update alpha3
           :numeric => '826' # TODO: update numeric
-
         }
         ActiveUtils::Country.new(xi_country_options)
       else
