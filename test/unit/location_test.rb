@@ -27,7 +27,7 @@ class LocationTest < ActiveSupport::TestCase
 
   test "#initialize is able to initialize with Northern Ireland iso2" do
     northern_ireland = ActiveShipping::Location.new({country: 'XI'})
-    assert_equal 'XI', northern_ireland.country_code(:alpha2)
+    assert_equal 'GB', northern_ireland.country_code(:alpha2)
     assert_equal 'GBR', northern_ireland.country_code(:alpha3)
     assert_equal '826', northern_ireland.country_code(:numeric)
   end
