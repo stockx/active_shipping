@@ -1180,6 +1180,10 @@ module ActiveShipping
     end
 
     def commit(action, request, test = false)
+      puts "*" * 50
+      puts "#{test ? TEST_URL : LIVE_URL}/#{RESOURCES[action]}"
+      puts request
+      puts "*" * 50
       response = ssl_post("#{test ? TEST_URL : LIVE_URL}/#{RESOURCES[action]}", request)
       response.encode('utf-8', 'iso-8859-1')
     end
