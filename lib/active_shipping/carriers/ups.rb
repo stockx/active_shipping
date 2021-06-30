@@ -688,23 +688,31 @@ module ActiveShipping
       #                   * Shipment/(ShipTo|ShipFrom)/CompanyName element
       #                   * Shipment/(Shipper|ShipTo|ShipFrom)/AttentionName element
       xml.public_send(name) do
-        xml.PhoneNumber(location.phone.gsub(/[^\d]/, '')) unless location.phone.blank?
-        xml.EMailAddress(location.email) unless location.email.blank?
-        xml.FaxNumber(location.fax.gsub(/[^\d]/, '')) unless location.fax.blank?
-
         if name == 'Shipper' and (origin_account = options[:origin_account] || @options[:origin_account])
-          puts "*" * 80
-          puts location.inspect
-          puts options.inspect
-          puts "*" * 80
           if shipper_name = (location.name || location.company_name || options[:origin_name])
             xml.Name(shipper_name)
           end
           xml.ShipperNumber(origin_account)
-          puts "-" * 80
-          puts location.tin
-          puts "-" * 80
           xml.TaxIdentificationNumber(location.tin)
+        end
+
+        xml.Phone do
+          xml.Number(location.phone.gsub(/[^\d]/, '')) unless location.phone.blank?
+        end
+        xml.FaxNumber(location.fax.gsub(/[^\d]/, '')) unless location.fax.blank?
+        xml.EMailAddress(location.email) unless location.email.blank?
+
+        if name == 'Shipper' and (origin_account = options[:origin_account] || @options[:origin_account])
+          # puts "*" * 80
+          # puts location.inspect
+          # puts options.inspect
+          # puts "*" * 80
+
+          # xml.ShipperNumber(origin_account)
+          # puts "-" * 80
+          # puts location.tin
+          # puts "-" * 80
+          # xml.TaxIdentificationNumber(location.tin)
         elsif name == 'ShipTo' and (ups_location_code = options[:ups_location_code] || @options[:ups_location_code])
           xml.LocationID(ups_location_code)
         end
