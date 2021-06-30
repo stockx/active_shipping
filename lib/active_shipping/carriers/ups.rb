@@ -696,9 +696,7 @@ module ActiveShipping
           xml.TaxIdentificationNumber(location.tin)
         end
 
-        xml.Phone do
-          xml.Number(location.phone.gsub(/[^\d]/, '')) unless location.phone.blank?
-        end
+        xml.PhoneNumber(location.phone.gsub(/[^\d]/, '')) unless location.phone.blank?
         xml.FaxNumber(location.fax.gsub(/[^\d]/, '')) unless location.fax.blank?
         xml.EMailAddress(location.email) unless location.email.blank?
 
